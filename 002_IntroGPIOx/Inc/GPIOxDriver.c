@@ -24,7 +24,7 @@ void GPIO_Config (GPIO_Handler_t *pGPIOHandler){
 
 	//Variable para hacer todo paso a paso
 	uint32_t auxConfig = 0;
-	uint32_t aux_Position = 0;
+	uint32_t auxPosition = 0;
 
 	// 1) Activar el periferico
 	// Verificamos para GPIOA
@@ -105,13 +105,51 @@ void GPIO_Config (GPIO_Handler_t *pGPIOHandler){
 
 		// Seleccionamos primero si se debe utilizar el registro bajo (AFRL) o el alto (AFRH)
 		if(pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber < 8){
-			//Estamos en el registro AR
+			//Estamos en el registro AFRL, que controla los pines del PIN_0 al PIN_7
+			auxPosition = 4*pGPIOHandler ->GPIO_PinConfig.GPIO_PinNumber;
+
+			// Limpiamos primero la posicion del registro que deseamos escribir a continuacion
+			pGPIOHandler ->pGPIOx ->AFRL &= ~(0b1111 << auxPosition);
+
+			// Y escribimos el valor configurado en la posicion seleccionada
+			pGPIOHandler ->pGPIOx ->AFRL |= (pGPIOHandler->GPIO_PinConfig.GPIO_PinAltFunMode << auxPosition);
+		} else {
+			//Estamos en el registro AFRH, que controla los pines del PIN_8 al PIN_15
+			auxPosition = 4*(pGPIOHandler ->GPIO_PinConfig.GPIO_PinNumber -8);
+
+			// Limpiamos primero la posicion del registro que deseamos escribir a continuacion
+			pGPIOHandler ->pGPIOx ->AFRH &= ~(0b1111 << auxPosition);
+
+			// Y escribimos el valor configurado en la posicion seleccionada
+			pGPIOHandler ->pGPIOx ->AFRH |= (pGPIOHandler->GPIO_PinConfig.GPIO_PinAltFunMode << auxPosition);
 		}
 	}
+}//Fin del GPIO_Config
 
-
-
-
+/**
+ * Funcion utilizada para cambiar el estado del pin entregado en el handler, asignando
+ * el valor entregado en la variable newState
+ */
+void GPIO_WritePin(GPIO_Handler_t *pPinHandler, uint8_t newState){
+	// Limpiamos la posicion que deseamos
+	// pPinHandler ->pGPIOx ->ODR &= ~(SET << pPinHandler ->GPIO_PinConfig.GPIO_PinNumber);
+	if (newState == SET){
+		// Trabajando con la parte baja del registro
+		pPinHandler->pGPIOx->BSRR |= (SET << pPinHandler->GPIO_PinConfig.GPIO_PinNumber);
+	} else {
+		// Trabajando con la parte alta del registro
+		pPinHandler->pGPIOx->BSRR |= (SET << (pPinHandler->GPIO_PinConfig.GPIO_PinNumber +16));
+	}
 }
+/**
+ *  FUncion para leer el estado de un pin especifico
+ */
+uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
+	// Creamos una variable auxiliar la cual luego retornaremos
+	uint32_t pinValue = 0;
 
+	// Cargamos el valor del registro IDR, desplazado a derecha tantas veces como la ubicacion del pin especifico
+	pinValue = (pPinValue ->pGPIOx->IDR >> pPinHandler ->GPIO_PinConfig.GPIO_PinNumber);
 
+	return pinValue;
+}
