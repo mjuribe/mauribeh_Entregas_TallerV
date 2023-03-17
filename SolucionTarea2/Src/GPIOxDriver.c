@@ -150,6 +150,7 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 
 	// Cargamos el valor del registro IDR, desplazado a derecha tantas veces como la ubicacion del pin especifico
 	pinValue = (pPinHandler ->pGPIOx->IDR >> pPinHandler ->GPIO_PinConfig.GPIO_PinNumber);
+	/* tengo que limpiar lo que no sea del pin que estoy buscando*/
 
 	return pinValue;
 
@@ -157,4 +158,8 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 	 * El error que la funcion GPIO_ReadPin() tenia era que ... por esto no nos permitia obtener el valor real
 	 * del PinX que estuvieramos leyendo
 	 */
+}
+
+void GPIOxTogglePin(GPIO_Handler_t*pPinHandler){
+
 }
