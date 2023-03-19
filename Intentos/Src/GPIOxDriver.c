@@ -157,11 +157,16 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 
 }
 
-void GPIOxTooglePin(GPIO_Handler_t*pPinHandler){
+void GPIOxTogglePin(GPIO_Handler_t*pPinHandler){
 	/*
 	 * Se cambia el estado del pin por medio del ODR
 	 */
-	pPinHandler ->pGPIOx->ODR ^= (1 << pPinHandler ->GPIO_PinConfig.GPIO_PinNumber) ;
+	if (GPIO_ReadPin(pPinHandler) == 0){
+		GPIO_WritePin(pPinHandler, SET);
+	} else {
+		GPIO_WritePin(pPinHandler, CLEAR);
+	}
+	//pPinHandler ->pGPIOx->ODR ^= pPinHandler ->pGPIOx->ODR >> pPinHandler ->GPIO_PinConfig.GPIO_PinNumber ;
 }
 
 

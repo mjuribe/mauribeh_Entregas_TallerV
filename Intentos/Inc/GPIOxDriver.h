@@ -37,6 +37,6 @@ typedef struct
 void GPIO_Config (GPIO_Handler_t *pGPIOHandler);                      // Configuracion del Pin
 void GPIO_WritePin(GPIO_Handler_t *pPinHandler, uint8_t newState);    // Escribir el estado del Pin
 uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler);                   // Leer el estado del Pin
-void GPIOxTooglePin(GPIO_Handler_t*pPinHandler);                      // Cambiar el estado del Pin
+void GPIOxTogglePin(GPIO_Handler_t*pPinHandler);                      // Cambiar el estado del Pin
 
 #endif /* INC_GPIOXDRIVER_H_ */
