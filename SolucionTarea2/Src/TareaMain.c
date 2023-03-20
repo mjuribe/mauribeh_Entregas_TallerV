@@ -196,8 +196,8 @@ int main(void){
 		}
 		// Se enciende el led correspondiente segun la posicion
 		/*
-		 * Se hace un desplazamiento a la izquierda segun el bit asignado y un and (&) con el numero del contador.
-		 * para poder definir si ese bit hace parte del numero en el que va la cuenta.
+		 * Se hace un desplazamiento a la izquierda segun el bit asignado y un "and" (&) con el numero del contador,
+		 * para poder definir si ese bit hace parte del numero en el que va la cuenta y cambiar su estado.
 		 */
 		GPIO_WritePin(&handlerPinA7, (0b1 << 0) & counter);        // bit-0
 		GPIO_WritePin(&handlerPinC8, ((0b1 << 1) & counter) >> 1); // bit-1
