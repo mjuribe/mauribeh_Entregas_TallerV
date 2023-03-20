@@ -2,7 +2,7 @@
  * GPIOxDriver.c
  *
  *  Created on: Mar 10, 2023
- *      Author: majo
+ *      Author: Maria Jose Uribe Henao
  *
  *  Este archivo es la parte del programa donde escribimos adecuadamente el control,
  *  para que sea lo mas generico posible, de forma que independiente del puerto GPIO y
@@ -159,7 +159,10 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 
 void GPIOxTooglePin(GPIO_Handler_t*pPinHandler){
 	/*
-	 * Se cambia el estado del pin por medio del ODR
+	 * Se cambia el estado del pin por medio del ODR (Output Data Register) el cual permite escribir y leer
+	 * el estado de los Pines. Por medio de la funcion xor y una mascara con un 1 en la posicion del PinX que
+	 * deseo cambiar se puede producir el suicheo. Y los demas valores de los pines no cambiaran puesto que al
+	 * operar con 0 se conserva el estado que se tenia anteriormente.
 	 */
 	pPinHandler ->pGPIOx->ODR ^= (1 << pPinHandler ->GPIO_PinConfig.GPIO_PinNumber) ;
 }
