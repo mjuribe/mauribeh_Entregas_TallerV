@@ -194,19 +194,22 @@ int main(void){
 		default:
 			break;
 		}
-		// Se enciende el led correspondiente segun la posicion
 		/*
-		 * Se hace un desplazamiento a la izquierda segun el bit asignado y un "and" (&) con el numero del contador,
-		 * para poder definir si ese bit hace parte del numero en el que va la cuenta y cambiar su estado.
+		 * Se hace una mascara con un desplazamiento a la izquierda segun el bit asignado, es decir, si la
+		 * posicion es del bit-2, se desea una mascara con 1 en la posicion 2 comenzando a contar desde 0.
+		 * (Por ejemplo, 0000100) y se realiza un "and" (&) con el numero del contador (por defecto binario).
+		 * Esto ayuda a definir si el led en esa posicion hace parte del numero en el que va la cuenta y por
+		 * consiguiente cambiar su estado.
+		 * Esta ultima parte se realiza por medio de un "shift" o desplazamiento a la derecha para que quede
+		 * en la posicion adecuada el 1 que significaria SET (enciende el led) o el 0 (apaga el led).
 		 */
-		GPIO_WritePin(&handlerPinA7, (0b1 << 0) & counter);        // bit-0
-		GPIO_WritePin(&handlerPinC8, ((0b1 << 1) & counter) >> 1); // bit-1
-		GPIO_WritePin(&handlerPinC7, ((0b1 << 2) & counter) >> 2); // bit-2
-		GPIO_WritePin(&handlerPinA6, ((0b1 << 3) & counter) >> 3); // bit-3
-		GPIO_WritePin(&handlerPinB8, ((0b1 << 4) & counter) >> 4); // bit-4
-		GPIO_WritePin(&handlerPinC6, ((0b1 << 5) & counter) >> 5); // bit-5
-		GPIO_WritePin(&handlerPinC9, ((0b1 << 6) & counter) >> 6); // bit-6
-
+		GPIO_WritePin(&handlerPinA7, (1) & counter);             // bit-0
+		GPIO_WritePin(&handlerPinC8, ((1 << 1) & counter) >> 1); // bit-1
+		GPIO_WritePin(&handlerPinC7, ((1 << 2) & counter) >> 2); // bit-2
+		GPIO_WritePin(&handlerPinA6, ((1 << 3) & counter) >> 3); // bit-3
+		GPIO_WritePin(&handlerPinB8, ((1 << 4) & counter) >> 4); // bit-4
+		GPIO_WritePin(&handlerPinC6, ((1 << 5) & counter) >> 5); // bit-5
+		GPIO_WritePin(&handlerPinC9, ((1 << 6) & counter) >> 6); // bit-6
 		/*
 		 * Verificar si el Boton de Usuario esta o no presionado
 		 * Si no esta presionado es un valor de 1, si lo esta es un valor de 0.
