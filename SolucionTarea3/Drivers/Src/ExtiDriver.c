@@ -544,16 +544,212 @@ void extInt_Config(EXTI_Config_t *extiConfig){
 	/* 4.0 Seleccionamos el tipo de flanco */
 	if(extiConfig->edgeType == EXTERNAL_INTERRUPT_FALLING_EDGE){
 		/* Falling Trigger selection register*/
-		// Desactivamos todos los posibles flancos de subida
-		EXTI->RTSR &= RESET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
-		// Llevando el registro a un valor conocido
-		EXTI->FTSR &= RESET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
-		EXTI->FTSR |= SET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
+		switch (extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber){
+		case 0:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR0;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR0;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR0;//Se le asigna el valor
+			break;
+		}
+		case 1:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR1;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR1;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR1;//Se le asigna el valor
+			break;
+		}
+		case 2:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR2;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR2;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR2;//Se le asigna el valor
+			break;
+		}
+		case 3:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR3;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR3;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR3;//Se le asigna el valor
+			break;
+		}
+		case 4:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR4;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR4;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR4;//Se le asigna el valor
+			break;
+		}
+		case 5:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR5;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR5;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR5;//Se le asigna el valor
+			break;
+		}
+		case 6:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR6;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR6;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR6;//Se le asigna el valor
+			break;
+		}
+		case 7:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR7;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR7;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR7;//Se le asigna el valor
+			break;
+		}
+		case 8:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR8;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR8;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR8;//Se le asigna el valor
+			break;
+		}
+		case 9:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR9;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR9;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR9;//Se le asigna el valor
+			break;
+		}
+		case 10:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR10;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR10;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR10;//Se le asigna el valor
+			break;
+		}
+		case 11:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR11;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR11;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR11;//Se le asigna el valor
+			break;
+		}
+		case 12:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR12;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR12;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR12;//Se le asigna el valor
+			break;
+		}
+		case 13:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR13;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR13;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR13;//Se le asigna el valor
+			break;
+		}
+		case 14:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR14;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR14;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR14;//Se le asigna el valor
+			break;
+		}
+		case 15:{
+			EXTI->RTSR &= ~EXTI_RTSR_TR15;//Se limpia la posicion respectiva
+			EXTI->FTSR &= ~EXTI_FTSR_TR15;//Se limpia la posicion respectiva
+			EXTI->FTSR |= EXTI_FTSR_TR15;//Se le asigna el valor
+			break;
+		}
+		default: {
+			__NOP();
+			break;
+		}
+		}
 	}
 	else{
-		EXTI->FTSR &= RESET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
-		EXTI->RTSR &= RESET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
-		EXTI->RTSR |= SET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
+		switch (extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber){
+		case 0:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR0;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR0;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR0;//Se le asigna el valor
+			break;
+		}
+		case 1:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR1;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR1;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR1;//Se le asigna el valor
+			break;
+		}
+		case 2:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR2;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR2;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR2;//Se le asigna el valor
+			break;
+		}
+		case 3:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR3;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR3;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR3;//Se le asigna el valor
+			break;
+		}
+		case 4:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR4;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR4;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR4;//Se le asigna el valor
+			break;
+		}
+		case 5:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR5;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR5;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR5;//Se le asigna el valor
+			break;
+		}
+		case 6:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR6;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR6;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR6;//Se le asigna el valor
+			break;
+		}
+		case 7:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR7;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR7;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR7;//Se le asigna el valor
+			break;
+		}
+		case 8:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR8;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR8;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR8;//Se le asigna el valor
+			break;
+		}
+		case 9:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR9;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR9;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR9;//Se le asigna el valor
+			break;
+		}
+		case 10:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR10;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR10;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR10;//Se le asigna el valor
+			break;
+		}
+		case 11:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR11;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR11;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR11;//Se le asigna el valor
+			break;
+		}
+		case 12:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR12;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR12;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR12;//Se le asigna el valor
+			break;
+		}
+		case 13:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR13;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR13;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR13;//Se le asigna el valor
+			break;
+		}
+		case 14:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR14;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR14;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR14;//Se le asigna el valor
+			break;
+		}
+		case 15:{
+			EXTI->FTSR &= ~EXTI_FTSR_TR15;//Se limpia la posicion respectiva
+			EXTI->RTSR &= ~EXTI_RTSR_TR15;//Se limpia la posicion respectiva
+			EXTI->RTSR |= EXTI_RTSR_TR15;//Se le asigna el valor
+			break;
+		}
+		default: {
+			__NOP();
+			break;
+		}
+		}
 	}
 
 	/* 5.0 Desactivo primero las interrupciones globales */
@@ -561,9 +757,92 @@ void extInt_Config(EXTI_Config_t *extiConfig){
 
 	/* 6.0 Activamos la interrupción del canal que estamos configurando */
 	// Interrupt Mask register
-	EXTI->IMR &= RESET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
-	EXTI->IMR |= SET << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber;
-
+	switch(extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber){
+	case 0:{
+		EXTI->IMR &= ~EXTI_IMR_IM0;
+		EXTI->IMR |= EXTI_IMR_IM0;
+		break;
+	}
+	case 1:{
+		EXTI->IMR &= ~EXTI_IMR_IM1;
+		EXTI->IMR |= EXTI_IMR_IM1;
+		break;
+	}
+	case 2:{
+		EXTI->IMR &= ~EXTI_IMR_IM2;
+		EXTI->IMR |= EXTI_IMR_IM2;
+		break;
+	}
+	case 3:{
+		EXTI->IMR &= ~EXTI_IMR_IM3;
+		EXTI->IMR |= EXTI_IMR_IM3;
+		break;
+	}
+	case 4:{
+		EXTI->IMR &= ~EXTI_IMR_IM4;
+		EXTI->IMR |= EXTI_IMR_IM4;
+		break;
+	}
+	case 5:{
+		EXTI->IMR &= ~EXTI_IMR_IM5;
+		EXTI->IMR |= EXTI_IMR_IM5;
+		break;
+	}
+	case 6:{
+		EXTI->IMR &= ~EXTI_IMR_IM6;
+		EXTI->IMR |= EXTI_IMR_IM6;
+		break;
+	}
+	case 7:{
+		EXTI->IMR &= ~EXTI_IMR_IM7;
+		EXTI->IMR |= EXTI_IMR_IM7;
+		break;
+	}
+	case 8:{
+		EXTI->IMR &= ~EXTI_IMR_IM8;
+		EXTI->IMR |= EXTI_IMR_IM8;
+		break;
+	}
+	case 9:{
+		EXTI->IMR &= ~EXTI_IMR_IM9;
+		EXTI->IMR |= EXTI_IMR_IM9;
+		break;
+	}
+	case 10:{
+		EXTI->IMR &= ~EXTI_IMR_IM10;
+		EXTI->IMR |= EXTI_IMR_IM10;
+		break;
+	}
+	case 11:{
+		EXTI->IMR &= ~EXTI_IMR_IM11;
+		EXTI->IMR |= EXTI_IMR_IM11;
+		break;
+	}
+	case 12:{
+		EXTI->IMR &= ~EXTI_IMR_IM12;
+		EXTI->IMR |= EXTI_IMR_IM12;
+		break;
+	}
+	case 13:{
+		EXTI->IMR &= ~EXTI_IMR_IM13;
+		EXTI->IMR |= EXTI_IMR_IM13;
+		break;
+	}
+	case 14:{
+		EXTI->IMR &= ~EXTI_IMR_IM14;
+		EXTI->IMR |= EXTI_IMR_IM14;
+		break;
+	}
+	case 15:{
+		EXTI->IMR &= ~EXTI_IMR_IM15;
+		EXTI->IMR |= EXTI_IMR_IM15;
+		break;
+	}
+	default: {
+		__NOP();
+		break;
+	}
+	}
 	/* 6.1 Matriculamos la interrupción en el NVIC para el canal correspondiente,
 	 * donde el canal 0 corresponde al EXTI_0, canal 1 al EXTI_1, etc.
 	 *

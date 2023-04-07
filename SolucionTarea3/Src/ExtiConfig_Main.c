@@ -6,8 +6,10 @@
 #include <math.h>
 
 /* Definicion de los elementos del sistema */
-// Blinky simple
+// Handler del Blinky simple
 GPIO_Handler_t handlerBlinkyPin = {0};
+
+// Handler de los timers
 BasicTimer_Handler_t handlerBlinkyTimer = {0};
 BasicTimer_Handler_t handlerTimer3 = {0};
 
@@ -32,11 +34,7 @@ GPIO_Handler_t handlerPinB12 = {0}; //DT
 // Definicion de los contadores
 uint32_t counterExtiSwitch=0;
 uint32_t counterExtiGiro=0;
-uint32_t counterExtiGiroInverso=0; //intentar con signed
-uint32_t counterInverse=0;
-uint32_t timer2=0;
-uint32_t timer3=0;
-uint8_t a=0;
+uint8_t UnOrDec=0;
 uint8_t snake=0;
 uint32_t snakeCounter=0;
 uint32_t counter=0;
@@ -45,14 +43,7 @@ uint32_t counter2 =0;
 
 // Definicion de los handler de los Exti
 EXTI_Config_t handlerExtiGiro = {0};
-EXTI_Config_t handlerExtiGiroInverso = {0};
 EXTI_Config_t handlerExtiSwitch = {0};
-
-//try
-GPIO_Handler_t handlerUserButton = {0};
-uint32_t counterExti13=0;
-EXTI_Config_t handlerExti = {0};
-
 
 int Digit[10][7] =
    {
@@ -89,7 +80,6 @@ int Culebrita[12][7] =
 /* Prototipos de las funciones */
 void callback_extInt4(void);
 void callback_extInt11(void);
-void callback_extInt12(void);
 void init_Hardware(void);
 
 int main (void){
@@ -97,7 +87,6 @@ int main (void){
 	init_Hardware();
 
 	while(1){
-		for (uint32_t i = 0; i < 800000; i++);
 
 		switch(counter){
 		case(100):
@@ -112,7 +101,7 @@ int main (void){
 
 		switch(snakeCounter){
 		case(0):
-			snake = 1;   // Conteo ascendente
+			snake = 1;
 			break;
 		case(1):
 			snake = 2;
@@ -132,52 +121,12 @@ int main (void){
 		default:
 			break;
 		}
-
-		if (snake==1){
-			GPIO_WritePin(&handlerPinC10, SET);
-			GPIO_WritePin(&handlerPinC12, RESET);
-		} else if (snake==2) {
-			GPIO_WritePin(&handlerPinC10, RESET);
-			GPIO_WritePin(&handlerPinC12, SET);
-		}
-
-		GPIO_WritePin(&handlerPinC9, Culebrita[snakeCounter][0]); // a
-		GPIO_WritePin(&handlerPinC8, Culebrita[snakeCounter][1]); // b
-		GPIO_WritePin(&handlerPinB8, Culebrita[snakeCounter][2]); // c
-		GPIO_WritePin(&handlerPinC6, Culebrita[snakeCounter][3]); // d
-		GPIO_WritePin(&handlerPinB9, Culebrita[snakeCounter][4]); // e
-		GPIO_WritePin(&handlerPinC5, Culebrita[snakeCounter][5]); // f
-		GPIO_WritePin(&handlerPinA6, Culebrita[snakeCounter][6]); // g
-
-		double result = counter/10;
-		counter2 = (uint32_t)floor(result);
-		counter1 = counter%10;
-
-
-		if (1){
-			counter++;
-			snakeCounter++;
-		}
-
 	}
 }
 
 
 
 void init_Hardware(void){
-
-	//try
-	/* Configurar el pin como una entrada digital */
-//	handlerUserButton.pGPIOx = GPIOC;
-//	handlerUserButton.GPIO_PinConfig.GPIO_PinNumber = PIN_13;
-//	handlerUserButton.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IN;
-//	handlerUserButton.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
-
-//	/* Cargando la configuracion en los registros del MCU */
-//	handlerExti.pGPIOHandler = &handlerUserButton;
-//	handlerExti.edgeType = EXTERNAL_INTERRUPT_RISING_EDGE;
-//	extInt_Config(&handlerExti);
-//
 
 	// ----------------------------BLINKY SIMPLE ----------------------------------------
 	/* Configuracion del LED2 - PA5 - Blinky Simple */
@@ -281,13 +230,6 @@ void init_Hardware(void){
 	GPIO_Config(&handlerPinC10);
 	GPIO_Config(&handlerPinC12);
 
-	// Handler para los pines del encoder
-	// Boton de switch
-//	handlerPinA12.pGPIOx = GPIOA;                                              // Deseamos trabajar con el puerto GPIOA
-//	handlerPinA12.GPIO_PinConfig.GPIO_PinNumber = PIN_12;                      // Escribimos el Numero del Pin
-//	handlerPinA12.GPIO_PinConfig.GPIO_PinMode   = GPIO_MODE_IN;                // Modo del pin de entrada
-//	handlerPinA12.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_PULLUP;     // No aplica porque es de salida
-
 	// ---------------------------- PINES DEL ENCODER ----------------------------------------
 	/* Configurar el pin como una entrada digital */
 	handlerPinC4.pGPIOx = GPIOC;
@@ -313,13 +255,13 @@ void init_Hardware(void){
 	handlerPinB12.GPIO_PinConfig.GPIO_PinSpeed= GPIO_OSPEED_MEDIUM;            // Velocidad media
 	handlerPinB12.GPIO_PinConfig.GPIO_PinAltFunMode= AF0;                      // Funcion alterna
 
-	// Cargamos la configuracion de los pines conectados a los transistores
+	// Cargamos la configuracion de los pines del encoder
 	GPIO_Config(&handlerPinC4);
 	GPIO_Config(&handlerPinA11);
 	GPIO_Config(&handlerPinB12);
 
 	// ---------------------------- TIMERS 2 Y 3 ----------------------------------------
-	/* Configuracion del TIM2 para que haga un blinky cada 300ms */
+	/* Configuracion del TIM2 para que haga un blinky cada 250ms */
 	handlerBlinkyTimer.ptrTIMx = TIM2;
 	handlerBlinkyTimer.TIMx_Config.TIMx_mode = BTIMER_MODE_UP;
 	handlerBlinkyTimer.TIMx_Config.TIMx_speed = BTIMER_SPEED_1ms;
@@ -329,7 +271,7 @@ void init_Hardware(void){
 	/* Cargando la configuracion del TIM2 en los registros */
 	BasicTimer_Config(&handlerBlinkyTimer);
 
-	/* Configuracion del TIM3 para que haga un blinky cada 1000ms */
+	/* Configuracion del TIM3 para cada 10ms */
 	handlerTimer3.ptrTIMx = TIM3;
 	handlerTimer3.TIMx_Config.TIMx_mode = BTIMER_MODE_UP;
 	handlerTimer3.TIMx_Config.TIMx_speed = BTIMER_SPEED_1ms;
@@ -346,65 +288,109 @@ void init_Hardware(void){
 	handlerExtiSwitch.edgeType = EXTERNAL_INTERRUPT_RISING_EDGE;
 	extInt_Config(&handlerExtiSwitch);
 
-	handlerExtiGiro.pGPIOHandler = &handlerPinB12;
-	handlerExtiGiro.edgeType = EXTERNAL_INTERRUPT_RISING_EDGE;
+	handlerExtiGiro.pGPIOHandler = &handlerPinA11;
+	handlerExtiGiro.edgeType = EXTERNAL_INTERRUPT_FALLING_EDGE;
 	extInt_Config(&handlerExtiGiro);
-
-	handlerExtiGiroInverso.pGPIOHandler = &handlerPinA11;
-	handlerExtiGiroInverso.edgeType = EXTERNAL_INTERRUPT_RISING_EDGE;
-	extInt_Config(&handlerExtiGiroInverso);
 
 }// Termina el init_Hardware
 
-// Funciones de los exti
+/* Funciones de los EXTI */
+// Funcion del boton del encoder
 void callback_extInt4(void){
-	counterExtiSwitch++;
+	if (counterExtiSwitch){
+		counterExtiSwitch=0;
+	} else {
+		counterExtiSwitch=1;
+	}
 }
 
-void callback_extInt12(void){
-	counterExtiGiro++;
-}
-
+// Funcion del giro del encoder
 void callback_extInt11(void){
-	counterInverse++;
+	counterExtiGiro = GPIO_ReadPin(&handlerPinB12);
+	if (counterExtiSwitch){
+		if (snake==1){
+			GPIO_WritePin(&handlerPinC10, SET);
+			GPIO_WritePin(&handlerPinC12, RESET);
+		} else if (snake==2) {
+			GPIO_WritePin(&handlerPinC10, RESET);
+			GPIO_WritePin(&handlerPinC12, SET);
+		}
+
+	    //CCW para la Culebrita
+	    if(!counterExtiGiro){
+			if(snakeCounter == 0){
+				snakeCounter = 12;
+			}
+			snakeCounter--;
+		}
+		//CW para la Culebrita
+		else{
+			if(snakeCounter == 12){
+				snakeCounter = 0;
+			}
+			snakeCounter++;
+		}
+	} else {
+		//CCW para el contador
+		if(!counterExtiGiro){
+			if(counter == 0){
+				counter++;
+			}
+			counter--; // Para que se quede en el numero 0
+		}
+		//CW para el contador
+		else{
+			if(counter == 99){
+				counter--;
+			}
+			counter++; // Para que se quede en el numero 99
+		}
+	}
 }
 
 // Funciones de los timers
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
-	timer2++;
 }
 
 void BasicTimer3_Callback(void){
-//	if (a==0){
-//		GPIO_WritePin(&handlerPinC10, SET);
-//		GPIO_WritePin(&handlerPinC12, RESET);
-//		GPIO_WritePin(&handlerPinC9, Digit[counter1][0]); // a
-//		GPIO_WritePin(&handlerPinC8, Digit[counter1][1]); // b
-//		GPIO_WritePin(&handlerPinB8, Digit[counter1][2]); // c
-//		GPIO_WritePin(&handlerPinC6, Digit[counter1][3]); // d
-//		GPIO_WritePin(&handlerPinB9, Digit[counter1][4]); // e
-//		GPIO_WritePin(&handlerPinC5, Digit[counter1][5]); // f
-//		GPIO_WritePin(&handlerPinA6, Digit[counter1][6]); // g
-//		a=1;
-//	} else {
-//		GPIO_WritePin(&handlerPinC10, RESET);
-//		GPIO_WritePin(&handlerPinC12, SET);
-//		GPIO_WritePin(&handlerPinC9, Digit[counter2][0]); // a
-//		GPIO_WritePin(&handlerPinC8, Digit[counter2][1]); // b
-//		GPIO_WritePin(&handlerPinB8, Digit[counter2][2]); // c
-//		GPIO_WritePin(&handlerPinC6, Digit[counter2][3]); // d
-//		GPIO_WritePin(&handlerPinB9, Digit[counter2][4]); // e
-//		GPIO_WritePin(&handlerPinC5, Digit[counter2][5]); // f
-//		GPIO_WritePin(&handlerPinA6, Digit[counter2][6]); // g
-//		a=0;
-//	}
-
-	timer3++;
+	double result = counter/10;
+	counter2 = (uint32_t)floor(result);
+	counter1 = counter%10;
+	if (!counterExtiSwitch){
+		if (UnOrDec==0){
+			GPIO_WritePin(&handlerPinC10, SET);
+			GPIO_WritePin(&handlerPinC12, RESET);
+			GPIO_WritePin(&handlerPinC9, Digit[counter1][0]); // a
+			GPIO_WritePin(&handlerPinC8, Digit[counter1][1]); // b
+			GPIO_WritePin(&handlerPinB8, Digit[counter1][2]); // c
+			GPIO_WritePin(&handlerPinC6, Digit[counter1][3]); // d
+			GPIO_WritePin(&handlerPinB9, Digit[counter1][4]); // e
+			GPIO_WritePin(&handlerPinC5, Digit[counter1][5]); // f
+			GPIO_WritePin(&handlerPinA6, Digit[counter1][6]); // g
+			UnOrDec=1;
+		} else {
+			GPIO_WritePin(&handlerPinC10, RESET);
+			GPIO_WritePin(&handlerPinC12, SET);
+			GPIO_WritePin(&handlerPinC9, Digit[counter2][0]); // a
+			GPIO_WritePin(&handlerPinC8, Digit[counter2][1]); // b
+			GPIO_WritePin(&handlerPinB8, Digit[counter2][2]); // c
+			GPIO_WritePin(&handlerPinC6, Digit[counter2][3]); // d
+			GPIO_WritePin(&handlerPinB9, Digit[counter2][4]); // e
+			GPIO_WritePin(&handlerPinC5, Digit[counter2][5]); // f
+			GPIO_WritePin(&handlerPinA6, Digit[counter2][6]); // g
+			UnOrDec=0;
+		}
+	} else {
+		GPIO_WritePin(&handlerPinC9, Culebrita[snakeCounter][0]); // a
+		GPIO_WritePin(&handlerPinC8, Culebrita[snakeCounter][1]); // b
+		GPIO_WritePin(&handlerPinB8, Culebrita[snakeCounter][2]); // c
+		GPIO_WritePin(&handlerPinC6, Culebrita[snakeCounter][3]); // d
+		GPIO_WritePin(&handlerPinB9, Culebrita[snakeCounter][4]); // e
+		GPIO_WritePin(&handlerPinC5, Culebrita[snakeCounter][5]); // f
+		GPIO_WritePin(&handlerPinA6, Culebrita[snakeCounter][6]); // g
+	}
 }
 
-//void callback_extInt13(void){
-//	counterExti13++;
-//}
 
 
