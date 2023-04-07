@@ -96,7 +96,7 @@ void BasicTimer_Config(BasicTimer_Handler_t *ptrBTimerHandler){
 	/* 5. Activamos la interrupción debida al Timerx Utilizado
 	 * Modificar el registro encargado de activar la interrupcion generada por el TIMx*/
 	/* Escriba codigo aca */
-	if(ptrBTimerHandler->TIMx_Config.TIMx_interruptEnable == 1){
+	if(ptrBTimerHandler->TIMx_Config.TIMx_interruptEnable == BTIMER_INTERRUP_ENABLE ){
 		ptrTimerUsed->DIER |= TIM_DIER_UIE;
 	}
 	else{
@@ -169,7 +169,7 @@ __attribute__((weak)) void BasicTimer5_Callback(void){
  * el sistema inmediatamente salta a este lugar en la memoria*/
 void TIM2_IRQHandler(void){
 	/* Limpiamos la bandera que indica que la interrupción se ha generado */
-	ptrTimerUsed->SR &= ~TIM_SR_UIF;
+	TIM2->SR &= ~TIM_SR_UIF;
 
 	/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
 	BasicTimer2_Callback();
@@ -178,7 +178,7 @@ void TIM2_IRQHandler(void){
 
 void TIM3_IRQHandler(void){
 	/* Limpiamos la bandera que indica que la interrupción se ha generado */
-	ptrTimerUsed->SR &= ~TIM_SR_UIF;
+	TIM3->SR &= ~TIM_SR_UIF;
 
 	/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
 	BasicTimer3_Callback();
@@ -187,7 +187,7 @@ void TIM3_IRQHandler(void){
 
 void TIM4_IRQHandler(void){
 	/* Limpiamos la bandera que indica que la interrupción se ha generado */
-	ptrTimerUsed->SR &= ~TIM_SR_UIF;
+	TIM4->SR &= ~TIM_SR_UIF;
 
 	/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
 	BasicTimer4_Callback();
@@ -196,7 +196,7 @@ void TIM4_IRQHandler(void){
 
 void TIM5_IRQHandler(void){
 	/* Limpiamos la bandera que indica que la interrupción se ha generado */
-	ptrTimerUsed->SR &= ~TIM_SR_UIF;
+	TIM5->SR &= ~TIM_SR_UIF;
 
 	/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
 	BasicTimer5_Callback();

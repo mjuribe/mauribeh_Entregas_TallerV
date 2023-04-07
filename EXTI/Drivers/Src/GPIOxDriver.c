@@ -154,7 +154,6 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 	return pinValue;
 }
 
-
 void GPIOxTooglePin(GPIO_Handler_t*pPinHandler){
 	/*
 	 * Se cambia el estado del pin por medio del ODR (Output Data Register) el cual permite escribir y leer
