@@ -35,9 +35,8 @@ GPIO_Handler_t handlerPinB12 = {0}; //DT
 uint32_t counterExtiSwitch=0;
 uint32_t counterExtiGiro=0;
 uint8_t UnOrDec=0;
-uint8_t snake=0;
-uint32_t snakeCounter=0;
-uint32_t counter=0;
+int32_t snakeCounter=0;
+int32_t counter=0;
 uint32_t counter1 =0;
 uint32_t counter2 =0;
 
@@ -59,20 +58,20 @@ int Digit[10][7] =
      { 0,0,0,0,1,0,0},    // 9
    };
 
-int Culebrita[12][7] =
+int Culebrita[12][9] =
    {
-     { 0,1,1,1,1,1,1},    // a
-     { 0,1,1,1,1,1,1},    // a
-     { 1,1,1,1,1,0,1},    // f
-     { 1,1,1,1,0,1,1},    // e
-	 { 1,1,1,0,1,1,1},    // d
-	 { 1,1,1,1,0,1,1},    // e
-     { 1,1,1,1,1,0,1},    // f
-     { 1,0,1,1,1,1,1},    // b
-     { 1,1,0,1,1,1,1},    // c
-     { 1,1,1,0,1,1,1},    // d
-     { 1,1,0,1,1,1,1},    // c
-     { 1,0,1,1,1,1,1},    // b
+     { 0,1,1,1,1,1,1,1,0 },    // a
+     { 0,1,1,1,1,1,1,0,1 },    // a
+     { 1,1,1,1,1,0,1,0,1 },    // f
+     { 1,1,1,1,0,1,1,0,1 },    // e
+	 { 1,1,1,0,1,1,1,0,1 },    // d
+	 { 1,1,1,1,0,1,1,1,0 },    // e
+     { 1,1,1,1,1,0,1,1,0 },    // f
+     { 1,0,1,1,1,1,1,0,1 },    // b
+     { 1,1,0,1,1,1,1,0,1 },    // c
+     { 1,1,1,0,1,1,1,1,0 },    // d
+     { 1,1,0,1,1,1,1,1,0 },    // c
+     { 1,0,1,1,1,1,1,1,0 },    // b
 
    };
 
@@ -100,23 +99,11 @@ int main (void){
 		}
 
 		switch(snakeCounter){
-		case(0):
-			snake = 1;
-			break;
-		case(1):
-			snake = 2;
-			break;
-		case(5):
-			snake = 1;
-			break;
-		case(7):
-			snake = 2;
-			break;
-		case(9):
-			snake = 1;
-			break;
 		case(12):
-			snakeCounter = 0;
+			snakeCounter = 0;   // Conteo ascendente
+			break;
+		case(-1):
+			snakeCounter = 11;  // Conteo descendente
 			break;
 		default:
 			break;
@@ -307,15 +294,7 @@ void callback_extInt4(void){
 // Funcion del giro del encoder
 void callback_extInt11(void){
 	counterExtiGiro = GPIO_ReadPin(&handlerPinB12);
-	if (counterExtiSwitch){
-		if (snake==1){
-			GPIO_WritePin(&handlerPinC10, SET);
-			GPIO_WritePin(&handlerPinC12, RESET);
-		} else if (snake==2) {
-			GPIO_WritePin(&handlerPinC10, RESET);
-			GPIO_WritePin(&handlerPinC12, SET);
-		}
-
+	if (!counterExtiSwitch){
 	    //CCW para la Culebrita
 	    if(!counterExtiGiro){
 			if(snakeCounter == 0){
@@ -357,7 +336,7 @@ void BasicTimer3_Callback(void){
 	double result = counter/10;
 	counter2 = (uint32_t)floor(result);
 	counter1 = counter%10;
-	if (!counterExtiSwitch){
+	if (counterExtiSwitch){
 		if (UnOrDec==0){
 			GPIO_WritePin(&handlerPinC10, SET);
 			GPIO_WritePin(&handlerPinC12, RESET);
@@ -382,13 +361,15 @@ void BasicTimer3_Callback(void){
 			UnOrDec=0;
 		}
 	} else {
-		GPIO_WritePin(&handlerPinC9, Culebrita[snakeCounter][0]); // a
-		GPIO_WritePin(&handlerPinC8, Culebrita[snakeCounter][1]); // b
-		GPIO_WritePin(&handlerPinB8, Culebrita[snakeCounter][2]); // c
-		GPIO_WritePin(&handlerPinC6, Culebrita[snakeCounter][3]); // d
-		GPIO_WritePin(&handlerPinB9, Culebrita[snakeCounter][4]); // e
-		GPIO_WritePin(&handlerPinC5, Culebrita[snakeCounter][5]); // f
-		GPIO_WritePin(&handlerPinA6, Culebrita[snakeCounter][6]); // g
+		GPIO_WritePin(&handlerPinC9,  Culebrita[snakeCounter][0]); // a
+		GPIO_WritePin(&handlerPinC8,  Culebrita[snakeCounter][1]); // b
+		GPIO_WritePin(&handlerPinB8,  Culebrita[snakeCounter][2]); // c
+		GPIO_WritePin(&handlerPinC6,  Culebrita[snakeCounter][3]); // d
+		GPIO_WritePin(&handlerPinB9,  Culebrita[snakeCounter][4]); // e
+		GPIO_WritePin(&handlerPinC5,  Culebrita[snakeCounter][5]); // f
+		GPIO_WritePin(&handlerPinA6,  Culebrita[snakeCounter][6]); // g
+		GPIO_WritePin(&handlerPinC10, Culebrita[snakeCounter][7]); // 1
+ 		GPIO_WritePin(&handlerPinC12, Culebrita[snakeCounter][8]); // 2
 	}
 }
 
