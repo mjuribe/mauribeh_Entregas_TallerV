@@ -41,9 +41,10 @@ uint32_t counter1 =0;
 uint32_t counter2 =0;
 
 // Definicion de los handler de los Exti
-EXTI_Config_t handlerExtiGiro = {0};
-EXTI_Config_t handlerExtiSwitch = {0};
+EXTI_Config_t handlerExtiGiro = {0};   // El que controlara la interrupcion del giro del encoder
+EXTI_Config_t handlerExtiSwitch = {0}; // El que controlara el boton del encoder
 
+/* Lista que contiene los distintos numeros que se pueden formar con el siete segmentos */
 int Digit[10][7] =
    {
      { 0,0,0,0,0,0,1},    // 0
@@ -58,6 +59,7 @@ int Digit[10][7] =
      { 0,0,0,0,1,0,0},    // 9
    };
 
+/* Lista que contiene las posiciones de la culebrita */
 int Culebrita[12][9] =
    {
      { 0,1,1,1,1,1,1,1,0 },    // a
@@ -86,18 +88,7 @@ int main (void){
 	init_Hardware();
 
 	while(1){
-
-		switch(counter){
-		case(100):
-			counter = 0;   // Conteo ascendente
-			break;
-		case(-1):
-			counter = 99;  // Conteo descendente
-			break;
-		default:
-			break;
-		}
-
+		// Para el ciclo de la culebrita
 		switch(snakeCounter){
 		case(12):
 			snakeCounter = 0;   // Conteo ascendente
@@ -198,7 +189,7 @@ void init_Hardware(void){
 	// ----------------------------PINES PARA LOS TRANSISTORES DEL DISPLAY  ----------------------------------------
 	//Definimos el handler para los Pines correspondientes a los transistores
 	handlerPinC10.pGPIOx = GPIOC;                                              // Deseamos trabajar con el puerto GPIOC
-	handlerPinC10.GPIO_PinConfig.GPIO_PinNumber = PIN_10;                       // Escribimos el Numero del Pin
+	handlerPinC10.GPIO_PinConfig.GPIO_PinNumber = PIN_10;                      // Escribimos el Numero del Pin
 	handlerPinC10.GPIO_PinConfig.GPIO_PinMode   = GPIO_MODE_OUT;               // Modo del pin de salida
 	handlerPinC10.GPIO_PinConfig.GPIO_PinOPType = GPIO_OTYPE_PUSHPULL;         // Tipo push-pull
 	handlerPinC10.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;     // No aplica porque es de salida
@@ -206,7 +197,7 @@ void init_Hardware(void){
 	handlerPinC10.GPIO_PinConfig.GPIO_PinAltFunMode= AF0;                      // Funcion alterna
 
 	handlerPinC12.pGPIOx = GPIOC;                                              // Deseamos trabajar con el puerto GPIOC
-	handlerPinC12.GPIO_PinConfig.GPIO_PinNumber = PIN_12;                       // Escribimos el Numero del Pin
+	handlerPinC12.GPIO_PinConfig.GPIO_PinNumber = PIN_12;                      // Escribimos el Numero del Pin
 	handlerPinC12.GPIO_PinConfig.GPIO_PinMode   = GPIO_MODE_OUT;               // Modo del pin de salida
 	handlerPinC12.GPIO_PinConfig.GPIO_PinOPType = GPIO_OTYPE_PUSHPULL;         // Tipo push-pull
 	handlerPinC12.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;     // No aplica porque es de salida
@@ -218,11 +209,11 @@ void init_Hardware(void){
 	GPIO_Config(&handlerPinC12);
 
 	// ---------------------------- PINES DEL ENCODER ----------------------------------------
-	/* Configurar el pin como una entrada digital */
-	handlerPinC4.pGPIOx = GPIOC;
-	handlerPinC4.GPIO_PinConfig.GPIO_PinNumber = PIN_4;
-	handlerPinC4.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IN;
-	handlerPinC4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
+	/* Configurar el pin como una entrada digital - Boton - SW */
+	handlerPinC4.pGPIOx = GPIOC;                                              // Deseamos trabajar con el puerto GPIOA
+	handlerPinC4.GPIO_PinConfig.GPIO_PinNumber = PIN_4;                       // Escribimos el Numero del Pin
+	handlerPinC4.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IN;                  // Modo del pin de entrada
+	handlerPinC4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;     // No aplica
 
 	// CLK
 	handlerPinA11.pGPIOx = GPIOA;                                              // Deseamos trabajar con el puerto GPIOA
@@ -258,7 +249,7 @@ void init_Hardware(void){
 	/* Cargando la configuracion del TIM2 en los registros */
 	BasicTimer_Config(&handlerBlinkyTimer);
 
-	/* Configuracion del TIM3 para cada 10ms */
+	/* Configuracion del TIM3 para el cambio de unidades y decenas cada 10ms */
 	handlerTimer3.ptrTIMx = TIM3;
 	handlerTimer3.TIMx_Config.TIMx_mode = BTIMER_MODE_UP;
 	handlerTimer3.TIMx_Config.TIMx_speed = BTIMER_SPEED_1ms;
@@ -275,6 +266,7 @@ void init_Hardware(void){
 	handlerExtiSwitch.edgeType = EXTERNAL_INTERRUPT_RISING_EDGE;
 	extInt_Config(&handlerExtiSwitch);
 
+	/* Configuracion del exti del giro del encoder */
 	handlerExtiGiro.pGPIOHandler = &handlerPinA11;
 	handlerExtiGiro.edgeType = EXTERNAL_INTERRUPT_FALLING_EDGE;
 	extInt_Config(&handlerExtiGiro);
@@ -293,31 +285,25 @@ void callback_extInt4(void){
 
 // Funcion del giro del encoder
 void callback_extInt11(void){
-	counterExtiGiro = GPIO_ReadPin(&handlerPinB12);
+	counterExtiGiro = GPIO_ReadPin(&handlerPinB12); // Estado del Pin que controla el giro
 	if (!counterExtiSwitch){
 	    //CCW para la Culebrita
 	    if(!counterExtiGiro){
-			if(snakeCounter == 0){
-				snakeCounter = 12;
-			}
-			snakeCounter--;
+			snakeCounter--; // Ciclo descendente
 		}
 		//CW para la Culebrita
 		else{
-			if(snakeCounter == 12){
-				snakeCounter = 0;
-			}
-			snakeCounter++;
+			snakeCounter++; // Ciclo ascendente
 		}
 	} else {
-		//CCW para el contador
+		//CCW para el contador de dos digitos
 		if(!counterExtiGiro){
 			if(counter == 0){
 				counter++;
 			}
 			counter--; // Para que se quede en el numero 0
 		}
-		//CW para el contador
+		//CW para el contador de dos digitos
 		else{
 			if(counter == 99){
 				counter--;
@@ -327,16 +313,19 @@ void callback_extInt11(void){
 	}
 }
 
-// Funciones de los timers
+/* Funciones de los timers */
+// Blinky Simple
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
 }
 
+// Cambio de unidades y descenas, asi como estado de los pines
 void BasicTimer3_Callback(void){
 	double result = counter/10;
-	counter2 = (uint32_t)floor(result);
-	counter1 = counter%10;
+	counter2 = (uint32_t)floor(result); // Para el valor de las decenas, cambia cada 10 unidades
+	counter1 = counter%10;              // Para el valor de las unidades
 	if (counterExtiSwitch){
+		// Estado de los pines para las unidades
 		if (UnOrDec==0){
 			GPIO_WritePin(&handlerPinC10, SET);
 			GPIO_WritePin(&handlerPinC12, RESET);
@@ -349,6 +338,7 @@ void BasicTimer3_Callback(void){
 			GPIO_WritePin(&handlerPinA6, Digit[counter1][6]); // g
 			UnOrDec=1;
 		} else {
+			// Estado de los pines para las decenas
 			GPIO_WritePin(&handlerPinC10, RESET);
 			GPIO_WritePin(&handlerPinC12, SET);
 			GPIO_WritePin(&handlerPinC9, Digit[counter2][0]); // a
@@ -361,6 +351,7 @@ void BasicTimer3_Callback(void){
 			UnOrDec=0;
 		}
 	} else {
+		// Estado de los pines para la culebrita
 		GPIO_WritePin(&handlerPinC9,  Culebrita[snakeCounter][0]); // a
 		GPIO_WritePin(&handlerPinC8,  Culebrita[snakeCounter][1]); // b
 		GPIO_WritePin(&handlerPinB8,  Culebrita[snakeCounter][2]); // c
