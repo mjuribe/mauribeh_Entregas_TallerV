@@ -286,7 +286,7 @@ void callback_extInt4(void){
 // Funcion del giro del encoder
 void callback_extInt11(void){
 	counterExtiGiro = GPIO_ReadPin(&handlerPinB12); // Estado del Pin que controla el giro
-	if (!counterExtiSwitch){
+	if (counterExtiSwitch){
 	    //CCW para la Culebrita
 	    if(!counterExtiGiro){
 			snakeCounter--; // Ciclo descendente
@@ -324,7 +324,7 @@ void BasicTimer3_Callback(void){
 	double result = counter/10;
 	counter2 = (uint32_t)floor(result); // Para el valor de las decenas, cambia cada 10 unidades
 	counter1 = counter%10;              // Para el valor de las unidades
-	if (counterExtiSwitch){
+	if (!counterExtiSwitch){
 		// Estado de los pines para las unidades
 		if (UnOrDec==0){
 			GPIO_WritePin(&handlerPinC10, SET);
