@@ -35,9 +35,22 @@ int main(void)
 
 	//Config. el pin PAS como salida
 	GPIOA -> ODR &= ~(1 << 5); //Limpiamos la salida PAS, apaga el led
+	for (uint32_t i = 0; i < 1380000; i++);
 	GPIOA -> ODR |= (1 << 5);  //Enciende el LED
 
+	for (uint32_t i = 0; i < 1380000; i++);
+	GPIOA -> ODR &= (0 << 5);  //Apaga el LED
 
+	for (uint32_t i = 0; i < 1380000; i++);
+	GPIOA -> ODR |= (1 << 5);  //Enciende el LED
+
+	for (uint32_t i = 0; i < 1380000; i++);
+	GPIOA -> ODR &= (0 << 5);  //Apaga el LED
+	for (uint32_t i = 0; i < 1380000; i++);
+	GPIOA -> ODR |= (1 << 5);  //Enciende el LED
+
+	for (uint32_t i = 0; i < 1380000; i++);
+	GPIOA -> ODR &= (0 << 5);  //Apaga el LED
 
 
 
