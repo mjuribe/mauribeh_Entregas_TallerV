@@ -7,7 +7,7 @@
 
 #include <stm32f4xx.h>
 #include "USARTxDriver.h"
-
+uint8_t auxRxData; //REVISAR COMO DEBER SER!!!!
 /**
  * Configurando el puerto Serial...
  * Recordar que siempre se debe comenzar con activar la señal de reloj
