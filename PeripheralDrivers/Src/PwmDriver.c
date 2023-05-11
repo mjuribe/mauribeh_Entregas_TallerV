@@ -11,12 +11,17 @@ void pwm_Config(PWM_Handler_t *ptrPwmHandler){
 
 	/* 1. Activar la señal de reloj del periférico requerido */
 	if(ptrPwmHandler->ptrTIMx == TIM2){
-		/* agregue acá su código */
+		RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 	}
 	else if(ptrPwmHandler->ptrTIMx == TIM3){
-		/* agregue acá su código */
+		RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 	}
-	/*... agregar los demas*/
+	else if(ptrPwmHandler->ptrTIMx == TIM4){
+		RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
+	}
+	else if(ptrPwmHandler->ptrTIMx == TIM5){
+		RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
+	}
 	else{
 		__NOP();
 	}

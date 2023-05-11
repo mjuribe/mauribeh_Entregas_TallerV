@@ -31,6 +31,9 @@
 #define USART_STOPBIT_2		2
 #define USART_STOPBIT_1_5	3
 
+#define USART_RX_INTERRUP_ENABLE 1
+#define USART_TX_INTERRUP_ENABLE 1
+
 /* Estructura para la configuración de la comunicacion:
  * Velocidad (baudrate)
  * Tamaño de los datos

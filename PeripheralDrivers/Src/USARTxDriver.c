@@ -201,7 +201,13 @@ int writeChar(USART_Handler_t *ptrUsartHandler, int dataToSend ){
 	return dataToSend;
 }
 
+// REVISAR!!
 void writeMsg(USART_Handler_t *ptrUsartHandler, char *msgToSend){
+	while( !(ptrUsartHandler->ptrUSARTx->SR & USART_SR_TXE)){
+		__NOP();
+	}
+	ptrUsartHandler->ptrUSARTx->DR = msgToSend;
+	return *msgToSend;
 
 }
 

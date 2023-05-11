@@ -61,7 +61,7 @@ void init_Hardware(void){
 	/* Cargando la configuracion del TIM2 en los registros */
 	BasicTimer_Config(&handlerTimer3);
 
-	/* Configuracion del TIM2 para que haga un blinky cada 300ms */
+	/* Configuracion del TIM4 para que haga un blinky cada 750ms */
 	handlerTimer4.ptrTIMx = TIM4;
 	handlerTimer4.TIMx_Config.TIMx_mode = BTIMER_MODE_UP;
 	handlerTimer4.TIMx_Config.TIMx_speed = BTIMER_SPEED_1ms;
