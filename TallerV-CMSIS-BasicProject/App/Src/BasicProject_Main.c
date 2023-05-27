@@ -13,6 +13,9 @@
 #include "BasicTimer.h"
 #include "ExtiDriver.h"
 #include "USARTxDriver.h"
+#include "SysTickDriver.h"
+#include "I2CDriver.h"
+#include "PwmDriver.h"
 #include <math.h>
 
 // Handler del Blinky simple
@@ -29,6 +32,7 @@ GPIO_Handler_t handlerPinRX ={0};
 USART_Handler_t usart2Comm={0};
 uint8_t sendMsg=0;
 uint8_t usart2DataReceived=0;
+uint8_t printMsg = 0;
 
 // Definicion de las cabeceras de las funciones
 void initSystem(void);
@@ -36,13 +40,21 @@ void initSystem(void);
 int main (void){
 
 	// Activamos el coprocesador matematico FPU
-	SCB->CPACR |= (0xF << 20);
+	// SCB->CPACR |= (0xF << 20);
 
 	// Iniciamos todos los elementos del sistema
 	initSystem();
 
 	/* Loop forever */
 	while(1){
+		if(printMsg > 4){
+			writeMsg(&usart2Comm, "hola taller/0");
+			writeChar(&usart2Comm, '0');
+			writeChar(&usart2Comm, 'L');
+			writeChar(&usart2Comm, 'A');
+			writeChar(&usart2Comm, ' ');
+			printMsg=0;
+		}
 
 
 	}
@@ -106,8 +118,8 @@ void initSystem(void){
 	usart2Comm.USART_Config.USART_parity       = USART_PARITY_NONE;
 	usart2Comm.USART_Config.USART_stopbits     = USART_STOPBIT_1;
 	usart2Comm.USART_Config.USART_mode         = USART_MODE_RXTX;
-	//usart2Comm.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE; REVISAR!!!!!!!!
-	//usart2Comm.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
+	usart2Comm.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE;
+	usart2Comm.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
 
 	USART_Config(&usart2Comm);
 
@@ -119,5 +131,6 @@ void callback_extInt13(void){
 
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
+	printMsg++;
 }
 

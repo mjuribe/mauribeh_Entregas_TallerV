@@ -17,7 +17,13 @@
 #define BTIMER_SPEED_100us	1600
 #define BTIMER_SPEED_1ms	16000
 
-#define BTIMER_INTERRUP_ENABLE 1
+#define BTIMER_SPEED_100Mhz_10us	1000
+#define BTIMER_SPEED_100Mhz_100us	10000
+
+#define BTIMER_SPEED_80Mhz_10us	    800
+#define BTIMER_SPEED_80Mhz_100us	8000
+
+#define BTIMER_INTERRUP_ENABLE  1
 #define BTIMER_INTERRUP_DISABLE 0
 
 /* Estructura que contiene la configuración mínima necesaria para el manejo del Timer.*/

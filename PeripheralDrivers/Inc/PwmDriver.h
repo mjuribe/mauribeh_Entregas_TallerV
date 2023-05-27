@@ -16,6 +16,7 @@
 #define PWM_CHANNEL_4	3
 
 #define PWM_DUTTY_0_PERCENT		0
+#define PWM_DUTTY_50_PERCENT	50
 #define PWM_DUTTY_100_PERCENT	100
 
 /**/

@@ -1,0 +1,276 @@
+/*
+ * LedDriver.c
+ *
+ *  Created on: May 17, 2023
+ *      Author: majo
+ */
+
+#include "LedDriver.h"
+
+void escribirUno(void) {
+	__NOP();
+	__NOP();
+	__NOP();
+
+	GPIOA->ODR &= ~(1 << 6);
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+
+	GPIOA->ODR |= (1 << 6);
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+
+}
+
+void escribirCero(void) {
+	__NOP();
+	__NOP();
+	__NOP();
+
+	GPIOA->ODR &= ~(1 << 6);
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+
+	GPIOA->ODR |= (1 << 6);
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+
+}
+
+void verde(void){
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+}
+
+void azul(void){
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+}
+
+void rojo(void){
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+}
+

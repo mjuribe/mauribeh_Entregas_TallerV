@@ -29,6 +29,8 @@ void escribirCero(void);
 void Color(uint8_t r,uint8_t g,uint8_t b);
 void correrArreglo(void);
 void resetLed(void);
+uint8_t variable = 0;
+uint32_t colorLED = 0;
 /**/
 
 uint8_t x = 0;
@@ -39,21 +41,42 @@ int main(void) {
 	/*Inicialización de todos los elementos del sistema*/
 	init_hardware();
 
-
-	x=1;
-
 	Color(150,150,0);
 	correrArreglo();
-	Color(0,150,0);
-	correrArreglo();
-	Color(150,0,150);
-	correrArreglo();
-	Color(0,150,150);
-	correrArreglo();
-	Color(150,0,0);
-	correrArreglo();
-	Color(150,0,0);
-	correrArreglo();
+//	Color(0,150,0);
+//	correrArreglo();
+//	Color(150,0,150);
+//	correrArreglo();
+//	Color(0,150,150);
+//	correrArreglo();
+//	Color(150,0,0);
+//	correrArreglo();
+	x=1;
+//
+//	if ((variable > 1) | (variable < 10 )){
+//		Color(150,150,0);
+//		correrArreglo();
+//		Color(0,150,0);
+//		correrArreglo();
+//		Color(150,0,150);
+//		correrArreglo();
+//		Color(0,150,150);
+//		correrArreglo();
+//		Color(150,0,0);
+//		correrArreglo();
+//	} else if ((variable > 10) | (variable < 20 )){
+//		Color(0,150,0);
+//		correrArreglo();
+//		Color(0,150,0);
+//		correrArreglo();
+//		Color(150,0,0);
+//		correrArreglo();
+//		Color(0,150,0);
+//		correrArreglo();
+//		Color(150,0,0);
+//		correrArreglo();
+//	}
+//
 
 
 	while(1){
@@ -106,7 +129,7 @@ void init_hardware(void) {
 	handlerBlinkyTimer.ptrTIMx = TIM2;
 	handlerBlinkyTimer.TIMx_Config.TIMx_mode = BTIMER_MODE_UP;
 	handlerBlinkyTimer.TIMx_Config.TIMx_speed = BTIMER_SPEED_1ms;
-	handlerBlinkyTimer.TIMx_Config.TIMx_period = 250;
+	handlerBlinkyTimer.TIMx_Config.TIMx_period = 1000;
 	handlerBlinkyTimer.TIMx_Config.TIMx_interruptEnable = 1;
 
 	/* Cargando la configuracion del TIM2 en los registros */
@@ -171,7 +194,8 @@ void init_hardware(void) {
 
 
 void Color(uint8_t r,uint8_t g,uint8_t b){
-	uint32_t colorLED = 0;
+	colorLED = 0;
+
 	colorLED |= (g << 0);
 	colorLED |= (r << 8);
 	colorLED |= (b << 16);
@@ -221,10 +245,16 @@ void correrArreglo(void){
 
 }
 
+
+
 /* Funciones de los timers */
 // Blinky Simple
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
+	variable++;
+	if (variable == 50){
+		variable=0;
+	}
 }
 void BasicTimer3_Callback(void){
 	if(x==1){
