@@ -1,8 +1,6 @@
 /*
  * PwmDriver.h
- *
- *  Created on: May 14, 2022
- *      Author: namontoy
+ * Author: Maria Jose Uribe Henao
  */
 
 #ifndef PWMDRIVER_H_
@@ -46,3 +44,4 @@ void startPwmSignal(PWM_Handler_t *ptrPwmHandler);
 void stopPwmSignal(PWM_Handler_t *ptrPwmHandler);
 
 #endif /* PWMDRIVER_H_ */
+

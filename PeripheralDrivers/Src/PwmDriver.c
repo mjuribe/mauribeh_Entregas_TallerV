@@ -38,6 +38,7 @@ void pwm_Config(PWM_Handler_t *ptrPwmHandler){
 	setDuttyCycle(ptrPwmHandler);
 
 	/* 2a. Estamos en UP_Mode, el limite se carga en ARR y se comienza en 0 */
+
 //	if(ptrTimerPWM== TIM2 || ptrPwmHandler->ptrTIMx == TIM5){
 //		// Configurar el registro que nos controla el modo up or down
 //		ptrTimerPWM->CR1 &= ~TIM_CR1_DIR;
@@ -54,7 +55,6 @@ void pwm_Config(PWM_Handler_t *ptrPwmHandler){
 	ptrPwmHandler->ptrTIMx->ARR &= ~(TIM_CR1_DIR);
 //	ptrPwmHandler->ptrTIMx->CR1 &= ~TIM_CR1_DIR;
 //	ptrPwmHandler->ptrTIMx->CNT = 0;
-	// NO HAY DOWN MODE??????????
 
 	/* 3. Configuramos los bits CCxS del registro TIMy_CCMR1, de forma que sea modo salida
 	 * (para cada canal hay un conjunto CCxS)
@@ -177,7 +177,7 @@ void enableOutput(PWM_Handler_t *ptrPwmHandler) {
 	}
 }
 
-/* 
+/*
  * La frecuencia es definida por el conjunto formado por el preescaler (PSC)
  * y el valor límite al que llega el Timer (ARR), con estos dos se establece
  * la frecuencia.
@@ -267,6 +267,5 @@ void updateDuttyCycle(PWM_Handler_t *ptrPwmHandler, uint16_t newDutty){
 	setDuttyCycle(ptrPwmHandler);
 
 }
-
 
 

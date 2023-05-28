@@ -58,6 +58,17 @@ GPIO_Handler_t handlerBlinkyPin = {0};
 BasicTimer_Handler_t handlerBlinkyTimer = {0};
 BasicTimer_Handler_t handlerMuestreo = {0};
 
+GPIO_Handler_t handlerPinPwmChannelX = {0};
+GPIO_Handler_t handlerPinPwmChannelY = {0};
+GPIO_Handler_t handlerPinPwmChannelZ = {0};
+PWM_Handler_t handlerSignalPwmX = {0};
+PWM_Handler_t handlerSignalPwmY = {0};
+PWM_Handler_t handlerSignalPwmZ = {0};
+
+uint16_t duttyValueX = 1000;
+uint16_t duttyValueY = 1000;
+uint16_t duttyValueZ = 1000;
+
 //uint8_t usart2DataReceived=0;
 uint8_t rxData = 0;
 
@@ -81,6 +92,7 @@ float datosAccel[3][2000];
 // Definicion de las cabeceras de las funciones
 void initSystem(void);
 void guardarDato(void);
+void PwmSignals(void);
 int isEmpty(float arr[][2000], int rows, int cols);
 
 int main (void){
@@ -93,11 +105,14 @@ int main (void){
 	configPLL(PLL_80);
 	//Muestreo a 1600Hz
 	i2c_writeSingleRegister(&handlerAccelerometer, BW_RATE , 0xE);
-
+	// Se configura a 80MHz
+	config_SysTick_ms(3);
 	//Imprimir un mensaje de inicio
 	writeMsg(&handlerCommTerminal, bufferData);
 
 	while(1){
+
+		PwmSignals();
 
 		//Hacemos un "eco" con el valor que nos llega por el serial
 		if(rxData != '\0'){
@@ -105,7 +120,6 @@ int main (void){
 			if(rxData == 'w'){
 				sprintf(bufferData, "DEVID \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-
 				i2cBuffer = i2c_readSingleRegister(&handlerAccelerometer, WHO_AM_I);
 				sprintf(bufferData, "Direccion = 0x%x \n", (unsigned int) i2cBuffer);
 				writeMsg(&handlerCommTerminal, bufferData);
@@ -115,7 +129,6 @@ int main (void){
 			else if (rxData == 'p'){
 				sprintf(bufferData, "PWR_MGMT_1 state \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-
 				i2cBuffer = i2c_readSingleRegister(&handlerAccelerometer, POWER_CTL);
 				sprintf(bufferData, "Estado = 0x%x \n", (unsigned int) i2cBuffer);
 				writeMsg(&handlerCommTerminal, bufferData);
@@ -125,7 +138,6 @@ int main (void){
 			else if (rxData == 'r'){
 				sprintf(bufferData, "PWR_MGMT_1 reset \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-
 				i2c_writeSingleRegister(&handlerAccelerometer, POWER_CTL , 0x2D);
 				rxData = '\0';
 			}
@@ -133,7 +145,6 @@ int main (void){
 			else if (rxData == 'x'){
 				sprintf(bufferData, "Axis X data \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-
 				uint8_t AccelX_low =  i2c_readSingleRegister(&handlerAccelerometer, ACCEL_XOUT_L);
 				uint8_t AccelX_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_XOUT_H);
 				int16_t AccelX = AccelX_high << 8 | AccelX_low;
@@ -156,7 +167,6 @@ int main (void){
 			else if(rxData == 'z'){
 				sprintf(bufferData, "Axis Z data \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-
 				uint8_t AccelZ_low = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_L);
 				uint8_t AccelZ_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_H);
 				int16_t AccelZ = AccelZ_high << 8 | AccelZ_low;
@@ -307,8 +317,75 @@ void initSystem(void){
 	handlerAccelerometer.modeI2C_FM							= I2C_MODE_FM_SPEED_400KHz_80MHz;
 
 	i2c_config(&handlerAccelerometer);
-}
 
+
+	// ---------------------------- CONFIGURACION DEL PWM  ----------------------------------------
+	handlerPinPwmChannelX.pGPIOx                                = GPIOA;
+	handlerPinPwmChannelX.GPIO_PinConfig.GPIO_PinNumber         = PIN_6;
+	handlerPinPwmChannelX.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannelX.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannelX.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannelX.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannelX.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
+	/* Cargamos la configuracion en los registros del MCU */
+	GPIO_Config(&handlerPinPwmChannelX);
+
+	handlerPinPwmChannelY.pGPIOx                                = GPIOB;
+	handlerPinPwmChannelY.GPIO_PinConfig.GPIO_PinNumber         = PIN_5;
+	handlerPinPwmChannelY.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannelY.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannelY.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannelY.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannelY.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
+	/* Cargamos la configuracion en los registros del MCU */
+	GPIO_Config(&handlerPinPwmChannelY);
+
+	handlerPinPwmChannelZ.pGPIOx                                = GPIOB;
+	handlerPinPwmChannelZ.GPIO_PinConfig.GPIO_PinNumber         = PIN_0;
+	handlerPinPwmChannelZ.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannelZ.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannelZ.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannelZ.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannelZ.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
+	/* Cargamos la configuracion en los registros del MCU */
+	GPIO_Config(&handlerPinPwmChannelZ);
+
+	/* Configuracion del TIM3 para que genere la signal PWM*/
+	handlerSignalPwmX.ptrTIMx                = TIM3;
+	handlerSignalPwmX.config.channel         = PWM_CHANNEL_1;
+	handlerSignalPwmX.config.duttyCicle      = duttyValueX;
+	handlerSignalPwmX.config.periodo         = 20000;
+	handlerSignalPwmX.config.prescaler       = 80;
+	/* Cargamos la configuracion en los registros del MCU */
+	pwm_Config(&handlerSignalPwmX);
+
+	/* Configuracion del TIM3 para que genere la signal PWM*/
+	handlerSignalPwmY.ptrTIMx                = TIM3;
+	handlerSignalPwmY.config.channel         = PWM_CHANNEL_2;
+	handlerSignalPwmY.config.duttyCicle      = duttyValueY;
+	handlerSignalPwmY.config.periodo         = 20000;
+	handlerSignalPwmY.config.prescaler       = 80;
+	/* Cargamos la configuracion en los registros del MCU */
+	pwm_Config(&handlerSignalPwmY);
+
+	/* Configuracion del TIM3 para que genere la signal PWM*/
+	handlerSignalPwmZ.ptrTIMx                = TIM3;
+	handlerSignalPwmZ.config.channel         = PWM_CHANNEL_3;
+	handlerSignalPwmZ.config.duttyCicle      = duttyValueZ;
+	handlerSignalPwmZ.config.periodo         = 20000;
+	handlerSignalPwmZ.config.prescaler       = 80;
+	/* Cargamos la configuracion en los registros del MCU */
+	pwm_Config(&handlerSignalPwmZ);
+
+	enableOutput(&handlerSignalPwmX);
+	enableOutput(&handlerSignalPwmY);
+	enableOutput(&handlerSignalPwmZ);
+
+	startPwmSignal(&handlerSignalPwmX);
+	startPwmSignal(&handlerSignalPwmY);
+	startPwmSignal(&handlerSignalPwmZ);
+
+}
 /* Funcion para el muestreo inicial por 2 segundos */
 void guardarDato(void){
 	bandera=1;
@@ -331,6 +408,51 @@ void guardarDato(void){
 	}
 		interrupcion=0;
 		bandera=0;
+}
+
+void PwmSignals(void){
+	uint8_t AccelX_low =  i2c_readSingleRegister(&handlerAccelerometer, ACCEL_XOUT_L);
+	uint8_t AccelX_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_XOUT_H);
+	int16_t AccelX = AccelX_high << 8 | AccelX_low;
+	uint8_t AccelY_low = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_YOUT_L);
+	uint8_t AccelY_high = i2c_readSingleRegister(&handlerAccelerometer,ACCEL_YOUT_H);
+	int16_t AccelY = AccelY_high << 8 | AccelY_low;
+	uint8_t AccelZ_low = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_L);
+	uint8_t AccelZ_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_H);
+	int16_t AccelZ = AccelZ_high << 8 | AccelZ_low;
+	x=(AccelX/256.f)*9.78;
+	y=(AccelY/256.f)*9.78;
+	z=(AccelZ/256.f)*9.78;
+	if(x==0){
+		duttyValueX = 10000;
+	} else if (x<0){
+		duttyValueX = (int)10000+x*1000;
+	} else if (x>0){
+		duttyValueX = (int)10000+x*1000;
+	}
+
+	if(y==0){
+		duttyValueY = 10000;
+	} else if (y<0){
+		duttyValueY = (int)10000+y*1000;
+	} else if (y>0){
+		duttyValueY = (int)10000+y*1000;
+	}
+	if(z==0){
+		duttyValueZ = 10000;
+	} else if (z<0){
+		duttyValueZ = (int)10000+z*1000;
+	} else if (z>0){
+		duttyValueZ = (int)10000+z*1000;
+	}
+	updateDuttyCycle(&handlerSignalPwmX, duttyValueX);
+	updateDuttyCycle(&handlerSignalPwmY, duttyValueY);
+	updateDuttyCycle(&handlerSignalPwmZ, duttyValueZ);
+	delay_ms(2000);
+	sprintf(bufferData, "DUTTY = x %d; y %d; z %d \n", duttyValueX, duttyValueY, duttyValueZ);
+	writeMsg(&handlerCommTerminal, bufferData);
+	sprintf(bufferData, "DUTTY = x %.2f; y %.2f; z %.2f \n", x, y, z);
+	writeMsg(&handlerCommTerminal, bufferData);
 }
 
 /* Funcion para verificar si el array esta vacio */
@@ -365,7 +487,8 @@ void BasicTimer4_Callback(void){
 //		guardarDato();
 	}
 }
-
+//PENSAR EN HACER UNA LECTURA A 1KHZ DE DATOS EN X Y Z SIEMPRE Y QUE LAS OTRAS FUNCIONES LO UNICO QUE HAGAN SEA GUARDARLOS
+// PARA QUE NO TOQUE REDEFINIR FUNCIONES TANTAS VECES
 
 
 

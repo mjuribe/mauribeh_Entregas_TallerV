@@ -37,7 +37,7 @@ BasicTimer_Handler_t handlerBlinkyTimer = {0};
 /* Elemento para hacer la comunicacion serial */
 GPIO_Handler_t handlerPinTX ={0};
 GPIO_Handler_t handlerPinRX ={0};
-USART_Handler_t usart2Comm={0};
+USART_Handler_t usart6Comm={0};
 uint8_t sendMsg=0;
 uint8_t usart2DataReceived=0;
 uint8_t printMsg = 0;
@@ -62,7 +62,7 @@ int main (void){
 	/* Loop forever */
 	while(1){
 		delay_ms(2000);
-		writeMsg(&usart2Comm, "HOla\n");
+		writeMsg(&usart6Comm, "Prueba Usart 6\n");
 	}
 	return 0;
 
@@ -83,7 +83,7 @@ void initSystem(void){
 	//Cargar la configuracion del LED2 en los registros
 	GPIO_Config(&handlerBlinkyPin);
 
-	/* Configuracion del TIM2 para que haga un blinky cada 300ms */
+	/* Configuracion del TIM2 para que haga un blinky cada 250ms */
 	handlerBlinkyTimer.ptrTIMx                          = TIM2;
 	handlerBlinkyTimer.TIMx_Config.TIMx_mode            = BTIMER_MODE_UP;
 	handlerBlinkyTimer.TIMx_Config.TIMx_speed           = BTIMER_SPEED_80Mhz_100us;
@@ -144,17 +144,17 @@ void initSystem(void){
 //	handlerPinRX.GPIO_PinConfig.GPIO_PinAltFunMode    = AF7;
 //	GPIO_Config(&handlerPinRX);
 
-	usart2Comm.ptrUSARTx                       = USART6;
-	usart2Comm.USART_Config.USART_baudrate     = USART_BAUDRATE_115200;
-	usart2Comm.USART_Config.USART_datasize     = USART_DATASIZE_8BIT;
-	usart2Comm.USART_Config.USART_parity       = USART_PARITY_NONE;
-	usart2Comm.USART_Config.USART_stopbits     = USART_STOPBIT_1;
-	usart2Comm.USART_Config.USART_mode         = USART_MODE_RXTX;
-	usart2Comm.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE;
-	usart2Comm.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
-	usart2Comm.USART_Config.USART_frequency    = 80;
+	usart6Comm.ptrUSARTx                       = USART6;
+	usart6Comm.USART_Config.USART_baudrate     = USART_BAUDRATE_115200;
+	usart6Comm.USART_Config.USART_datasize     = USART_DATASIZE_8BIT;
+	usart6Comm.USART_Config.USART_parity       = USART_PARITY_NONE;
+	usart6Comm.USART_Config.USART_stopbits     = USART_STOPBIT_1;
+	usart6Comm.USART_Config.USART_mode         = USART_MODE_RXTX;
+	usart6Comm.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE;
+	usart6Comm.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
+	usart6Comm.USART_Config.USART_frequency    = 80;
 
-	USART_Config(&usart2Comm);
+	USART_Config(&usart6Comm);
 
 }
 
@@ -165,7 +165,7 @@ void callback_extInt13(void){
 void usart6Rx_Callback(void){
 	usart2DataReceived = getRxData();
 	/* Echo, envia de vuelta lo que recibe */
-	writeChar(&usart2Comm, usart2DataReceived);
+	writeChar(&usart6Comm, usart2DataReceived);
 }
 
 

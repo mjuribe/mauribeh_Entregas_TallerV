@@ -23,10 +23,6 @@
 
 // Handler del Blinky simple
 GPIO_Handler_t handlerBlinkyPin = {0};
-
-GPIO_Handler_t handlerUserButton = {0};
-EXTI_Config_t handlerUserButtonExti = {0};
-
 BasicTimer_Handler_t handlerBlinkyTimer = {0};
 
 /* Elemento para hacer la comunicacion serial */
@@ -60,13 +56,13 @@ int main (void){
 	while(1){
 		/* Verificando el PWM */
 		if(usart2DataReceived != '\0'){
-			if (usart2DataReceived == 'D'){
+			if (usart2DataReceived == 'd'){
 				// Down
 				duttyValue -=10;
 				updateDuttyCycle(&handlerSignalPWM, duttyValue);
 			}
 			/* Para probar el seno */
-			if (usart2DataReceived == 'U'){
+			if (usart2DataReceived == 'u'){
 				// Up
 				duttyValue +=10;
 				// Lanzamos un nuevo ciclo de adquisiciones
@@ -82,9 +78,9 @@ int main (void){
 		}
 
 
-	}
+	}//Fin del while
 
-}
+} //Fin del main
 
 
 void initSystem(void){
@@ -111,19 +107,6 @@ void initSystem(void){
 	/* Cargando la configuracion del TIM2 en los registros */
 	BasicTimer_Config(&handlerBlinkyTimer);
 
-	/* Configuracion del exti */
-	/* Configurar el pin como una entrada digital que entregara la interrupcion EXTI 13*/
-	handlerUserButton.pGPIOx                               = GPIOC;
-	handlerUserButton.GPIO_PinConfig.GPIO_PinNumber        = PIN_13;
-	handlerUserButton.GPIO_PinConfig.GPIO_PinMode          = GPIO_MODE_IN;
-	handlerUserButton.GPIO_PinConfig.GPIO_PinPuPdControl   = GPIO_PUPDR_NOTHING;
-	GPIO_Config(&handlerUserButton);
-
-	/* Cargando la configuracion en los registros del MCU */
-	handlerUserButtonExti.pGPIOHandler = &handlerUserButton;
-	handlerUserButtonExti.edgeType     = EXTERNAL_INTERRUPT_RISING_EDGE;
-	extInt_Config(&handlerUserButtonExti);
-
 	/* Configuracion de la comunicacion serial*/
 	handlerPinTX.pGPIOx                               = GPIOA;
 	handlerPinTX.GPIO_PinConfig.GPIO_PinNumber        = PIN_2;
@@ -149,40 +132,30 @@ void initSystem(void){
 	USART_Config(&usart2Comm);
 
 	/* Configuramos el PWM */
-	handlerPinPwmChannel.pGPIOx = GPIOC;
-	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinNumber = PIN_7;
-	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
-	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinOPType = GPIO_OTYPE_PUSHPULL;
-	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OSPEED_FAST;
-	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
-	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinAltFunMode = AF2;
+	handlerPinPwmChannel.pGPIOx                                = GPIOC;
+	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinNumber         = PIN_7;
+	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
 
 	/* Cargamos la configuracion en los registros del MCU */
 	GPIO_Config(&handlerPinPwmChannel);
 
 	/* Configuracion del TIM3 para que genere la signal PWM*/
-	handlerSignalPWM.ptrTIMx = TIM3;
-	handlerSignalPWM.config.channel = PWM_CHANNEL_2;
-	handlerSignalPWM.config.duttyCicle = duttyValue;
-	handlerSignalPWM.config.periodo = 20000;
-	handlerSignalPWM.config.prescaler = 16;
+	handlerSignalPWM.ptrTIMx                = TIM3;
+	handlerSignalPWM.config.channel         = PWM_CHANNEL_2;
+	handlerSignalPWM.config.duttyCicle      = duttyValue;
+	handlerSignalPWM.config.periodo         = 20000;
+	handlerSignalPWM.config.prescaler       = 16;
 
 	/* Cargamos la configuracion en los registros del MCU */
 	pwm_Config(&handlerSignalPWM);
 
 	enableOutput(&handlerSignalPWM);
 	startPwmSignal(&handlerSignalPWM);
-
-	/* Cargando la configuracion del TIM2 en los registros */
-	BasicTimer_Config(&handlerBlinkyTimer);
-
 }
-
-/* Callback del User Button*/
-void callback_extInt13(void){
-	__NOP();
-}
-
 
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
