@@ -25,7 +25,7 @@
 #include "PLLDriver.h"
 #include "LCDDriver.h"
 
-
+#define LCD_ADDRESS 0x21
 #define PLL_80_CLOCK_CONFIGURED  3
 #define PLL_80  0
 
@@ -99,12 +99,8 @@ uint8_t i2cBuffer ={0};
 uint32_t interrupcion=0;
 uint8_t bandera=0;
 
-float x,y,z;
 float datosAccel[3][2000];
-char bufferx[64] = {0};
-char buffery[64] = {0};
-char bufferz[64] = {0};
-char buffersum[64] = {0};
+char bufferLCD[64] = {0};
 
 // Definicion de las cabeceras de las funciones
 void initSystem(void);
@@ -134,30 +130,30 @@ int main (void){
 	LCD_Init(&handlerLCD);
 	delay_10();
 	LCD_setCursor(&handlerLCD, 0, 1);
-	LCD_sendSTR(&handlerLCD, "Ac x =");
+	LCD_sendSTR(&handlerLCD, "Ac x =       m/s^2");
 	LCD_setCursor(&handlerLCD, 1, 1);
-	LCD_sendSTR(&handlerLCD, "Ac y = ");
+	LCD_sendSTR(&handlerLCD, "Ac y =       m/s^2");
 	LCD_setCursor(&handlerLCD, 2, 1);
-	LCD_sendSTR(&handlerLCD, "Ac z = ");
+	LCD_sendSTR(&handlerLCD, "Ac z =       m/s^2");
 	LCD_setCursor(&handlerLCD, 3, 0);
 	LCD_sendSTR(&handlerLCD, "Sensit = ");
 
 
 	while(1){
 		if(contadorLCD > 4){
-			sprintf(bufferx,"%.2f m/s^2",x);
-			sprintf(buffery,"%.2f m/s^2",y);
-			sprintf(bufferz,"%.2f m/s^2",z);
-			sprintf(buffersum,"%.2f", 256.0);
-
+			sprintf(bufferLCD,"%.2f ",(AccelX/256.f)*9.78);
 			LCD_setCursor(&handlerLCD, 0, 8);
-			LCD_sendSTR(&handlerLCD, bufferx);
+			LCD_sendSTR(&handlerLCD, bufferLCD);
+			sprintf(bufferLCD,"%.2f ",(AccelY/256.f)*9.78);
 			LCD_setCursor(&handlerLCD, 1, 8);
-			LCD_sendSTR(&handlerLCD, buffery);
+			LCD_sendSTR(&handlerLCD, bufferLCD);
+			sprintf(bufferLCD,"%.2f ",(AccelZ/256.f)*9.78);
 			LCD_setCursor(&handlerLCD, 2, 8);
-			LCD_sendSTR(&handlerLCD, bufferz);
-			LCD_setCursor(&handlerLCD, 3, 10);
-			LCD_sendSTR(&handlerLCD, buffersum);
+			LCD_sendSTR(&handlerLCD, bufferLCD);
+			sprintf(bufferLCD,"%.2f ", 256.0);
+			LCD_setCursor(&handlerLCD, 3, 8);
+			LCD_sendSTR(&handlerLCD, bufferLCD);
+
 
 			contadorLCD = 0;
 		}
@@ -213,7 +209,7 @@ int main (void){
 			else if (rxData == 'x'){
 				sprintf(bufferData, "Axis X data \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-				sprintf(bufferData, "AccelX = %.2f m/s^2 \n", x);
+				sprintf(bufferData, "AccelX = %.2f m/s^2 \n", (AccelX/256.f)*9.78);
 				writeMsg(&handlerCommTerminal, bufferData);
 				rxData = '\0';
 			}
@@ -221,7 +217,7 @@ int main (void){
 			else if(rxData == 'y'){
 				sprintf(bufferData, "Axis Y data \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-				sprintf(bufferData, "AccelY = %.2f m/s^2 \n", y);
+				sprintf(bufferData, "AccelY = %.2f m/s^2 \n", (AccelY/256.f)*9.78);
 				writeMsg(&handlerCommTerminal, bufferData);
 				rxData = '\0';
 			}
@@ -229,7 +225,7 @@ int main (void){
 			else if(rxData == 'z'){
 				sprintf(bufferData, "Axis Z data \n");
 				writeMsg(&handlerCommTerminal, bufferData);
-				sprintf(bufferData, "AccelZ = %.2f m/s^2 \n", z);
+				sprintf(bufferData, "AccelZ = %.2f m/s^2 \n", (AccelZ/256.f)*9.78);
 				writeMsg(&handlerCommTerminal, bufferData);
 				rxData = '\0';
 			}
@@ -238,7 +234,7 @@ int main (void){
 				writeMsg(&handlerCommTerminal, "Muestreo por 2 segundos \n" );
 				delay_ms(2000);
 				for (int i=0;i<2000;i++){
-					sprintf(bufferData, "Accel = x %.5f; y %.5f; z %.5f ; #Dato %d \n", datosAccel[0][i],datosAccel[1][i],datosAccel[2][i], i+1);
+					sprintf(bufferData, "Accel = x %.2f; y %.2f; z %.2f ; #Dato %d \n", (datosAccel[0][i]/256.f)*9.78,(datosAccel[1][i]/256.f)*9.78,(datosAccel[2][i]/256.f)*9.78, i+1);
                     writeMsg(&handlerCommTerminal, bufferData);
 				}
 				rxData = '\0';
@@ -474,19 +470,19 @@ void guardarDato(void){
 		AccelZ_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_H);
 		AccelZ = AccelZ_high << 8 | AccelZ_low;
 	}
-	x=(AccelX/256.f)*9.78;
-	y=(AccelY/256.f)*9.78;
-	z=(AccelZ/256.f)*9.78;
-    datosAccel[0][interrupcion] =x;
-    datosAccel[1][interrupcion] =y;
-    datosAccel[2][interrupcion] =z;
+//	x=(AccelX/256.f)*9.78;
+//	y=(AccelY/256.f)*9.78;
+//	z=(AccelZ/256.f)*9.78;
+    datosAccel[0][interrupcion] =AccelX;
+    datosAccel[1][interrupcion] =AccelY;
+    datosAccel[2][interrupcion] =AccelZ;
 }
 
 
 void PwmSignals(void){
-	duttyValueX = (int)10000+x*1000;
-	duttyValueY = (int)10000+y*1000;
-	duttyValueZ = (int)10000+z*1000;
+	duttyValueX = (int)10000+(AccelX/256.f)*9.78*1000;
+	duttyValueY = (int)10000+(AccelY/256.f)*9.78*1000;
+	duttyValueZ = (int)10000+(AccelZ/256.f)*9.78*1000;
 	updateDuttyCycle(&handlerSignalPwmX, duttyValueX);
 	updateDuttyCycle(&handlerSignalPwmY, duttyValueY);
 	updateDuttyCycle(&handlerSignalPwmZ, duttyValueZ);

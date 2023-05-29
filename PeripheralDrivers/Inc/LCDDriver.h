@@ -24,6 +24,5 @@ void delay_10 (void);
 void LCD_ClearScreen(I2C_Handler_t *ptrHandlerI2C);
 void LCD_writeData(I2C_Handler_t *ptrHandlerI2C, uint8_t dataToWrite);
 
-#define LCD_ADDRESS 0x21
 #endif /* LCDDRIVER_H_ */
 
