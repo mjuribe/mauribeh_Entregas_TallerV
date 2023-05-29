@@ -136,7 +136,7 @@ int main (void){
 	LCD_setCursor(&handlerLCD, 2, 1);
 	LCD_sendSTR(&handlerLCD, "Ac z =       m/s^2");
 	LCD_setCursor(&handlerLCD, 3, 0);
-	LCD_sendSTR(&handlerLCD, "Sensit = ");
+	LCD_sendSTR(&handlerLCD, "Sensib = 0.04 m/s^2");
 
 
 	while(1){
@@ -150,13 +150,12 @@ int main (void){
 			sprintf(bufferLCD,"%.2f ",(AccelZ/256.f)*9.78);
 			LCD_setCursor(&handlerLCD, 2, 8);
 			LCD_sendSTR(&handlerLCD, bufferLCD);
-			sprintf(bufferLCD,"%.2f ", 256.0);
-			LCD_setCursor(&handlerLCD, 3, 8);
-			LCD_sendSTR(&handlerLCD, bufferLCD);
-
-
+//			sprintf(bufferLCD,"%.2f ", 0.04);
+//			LCD_setCursor(&handlerLCD, 3, 8);
+//			LCD_sendSTR(&handlerLCD, "");
 			contadorLCD = 0;
 		}
+
 
 		guardarDato();
 
