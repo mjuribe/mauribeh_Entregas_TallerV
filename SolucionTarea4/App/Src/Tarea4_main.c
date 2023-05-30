@@ -3,9 +3,15 @@
  * @file     : Maria Jose Uribe Henao
  * @author   : AccelTest_Main.c
  * @brief    : TAREA ESPECIAL - TALLER V
+ *
+ * Se resuelve la Tarea 4 - Especial del curso Taller V
+ * El microcontrolador se encuentra a 80 MHz
+ * Se utiliza el puerto serial USART 6
+ * Se hace un muestreo constante cada 1ms de los valores de aceleracion con un ADXL-345
+ * Se generan tres señales PWM donde los Dutty varian con la aceleracion del eje correspondiente
+ * Se configura una pantalla LCD que despliega los valores de aceleracion y de configuracion
  * **************************************************************************************************
  */
-
 
 #include <stdint.h>
 #include <stdio.h>
@@ -25,11 +31,11 @@
 #include "PLLDriver.h"
 #include "LCDDriver.h"
 
+/* Definicion de las macros */
 #define LCD_ADDRESS 0x21
 #define PLL_80_CLOCK_CONFIGURED  3
 #define PLL_80  0
-
-/* Definicion de las macros */
+// Registros del Acelerometro ADXL 345
 #define ACCEL_ADDRESS          	 0x1D
 #define ACCEL_XOUT_L             50     //DATAX0
 #define ACCEL_XOUT_H             51     //DATAX1
@@ -37,9 +43,7 @@
 #define ACCEL_YOUT_H             53     //DATAY1
 #define ACCEL_ZOUT_L             54     //DATAZ0
 #define ACCEL_ZOUT_H             55     //DATAZ1
-
-#define BW_RATE                  44     //Data Rate
-
+#define BW_RATE                  44     //Output Data Rate
 #define POWER_CTL                45
 #define WHO_AM_I                 0      //DEVID
 
@@ -57,6 +61,7 @@ GPIO_Handler_t handlerBlinkyPin = {0};
 BasicTimer_Handler_t handlerBlinkyTimer = {0};
 BasicTimer_Handler_t handlerMuestreo = {0};
 
+/* Handler para las señales por PWM */
 GPIO_Handler_t handlerPinPwmChannelX = {0};
 GPIO_Handler_t handlerPinPwmChannelY = {0};
 GPIO_Handler_t handlerPinPwmChannelZ = {0};
@@ -78,16 +83,6 @@ uint8_t AccelZ_low=0;
 uint8_t AccelZ_high=0;
 int16_t AccelZ=0;
 
-//uint8_t usart2DataReceived=0;
-uint8_t rxData = 0;
-uint8_t contadorLCD=0;
-
-char bufferData[64]= "Accel ADXL-345";
-
-uint8_t systemTicks = 0;
-uint8_t systemTicksStart = 0;
-uint8_t systemTicksEnd = 0;
-
 /*Configuracion para el I2C */
 GPIO_Handler_t handlerI2cSDA = {0};
 GPIO_Handler_t handlerI2cSCL = {0};
@@ -95,10 +90,17 @@ GPIO_Handler_t handlerI2cLcdSDA = {0};
 GPIO_Handler_t handlerI2cLcdSCL = {0};
 I2C_Handler_t handlerAccelerometer = {0};
 I2C_Handler_t handlerLCD = {0};
+
+/* Contadores y banderas */
+uint8_t rxData = 0;
+uint8_t contadorLCD=0;
 uint8_t i2cBuffer ={0};
 uint32_t interrupcion=0;
 uint8_t bandera=0;
+uint8_t counterLastLine;
 
+/* Arreglos */
+char bufferData[64]= "Accel ADXL-345";
 float datosAccel[3][2000];
 char bufferLCD[64] = {0};
 
@@ -115,10 +117,11 @@ int main (void){
 	initSystem();
 	//Frecuencia del micro a 80MHz
 	configPLL(PLL_80);
-	//Muestreo a 1600Hz
+	//Muestreo a 3200Hz
 	i2c_writeSingleRegister(&handlerAccelerometer, BW_RATE , 0xF);
+	//Reset inicial del acelerometro
 	i2c_writeSingleRegister(&handlerAccelerometer, POWER_CTL , 0x2D);
-	// Se configura a 80MHz
+	// Se configura el systick a 80MHz
 	config_SysTick_ms(PLL_80_CLOCK_CONFIGURED);
 	//Imprimir un mensaje de inicio
 	writeMsg(&handlerCommTerminal, "Tarea Especial - Taller V \n"
@@ -126,39 +129,49 @@ int main (void){
 			"Frecuencia del microcontrolador: 80 MHz \n"
 			"Presionar tecla 'a' para ver los comandos \n");
 
+	//Se inicializa y se limpia la LCD
 	LCD_ClearScreen(&handlerLCD);
 	LCD_Init(&handlerLCD);
-	delay_10();
-	LCD_setCursor(&handlerLCD, 0, 1);
-	LCD_sendSTR(&handlerLCD, "Ac x =       m/s^2");
-	LCD_setCursor(&handlerLCD, 1, 1);
-	LCD_sendSTR(&handlerLCD, "Ac y =       m/s^2");
-	LCD_setCursor(&handlerLCD, 2, 1);
-	LCD_sendSTR(&handlerLCD, "Ac z =       m/s^2");
-	LCD_setCursor(&handlerLCD, 3, 0);
+	delay_ms(10);
+	//Mensajes predeterminados
+	LCDMoveCursorTo(&handlerLCD, 0, 1);
+	LCD_sendSTR(&handlerLCD, "Ac x =        m/s^2");
+	LCDMoveCursorTo(&handlerLCD, 1, 1);
+	LCD_sendSTR(&handlerLCD, "Ac y =        m/s^2");
+	LCDMoveCursorTo(&handlerLCD, 2, 1);
+	LCD_sendSTR(&handlerLCD, "Ac z =        m/s^2");
+	LCDMoveCursorTo(&handlerLCD, 3, 1);
 	LCD_sendSTR(&handlerLCD, "Sensib = 0.04 m/s^2");
 
 
 	while(1){
+		//Refresco de los datos cada segundo
 		if(contadorLCD > 4){
 			sprintf(bufferLCD,"%.2f ",(AccelX/256.f)*9.78);
-			LCD_setCursor(&handlerLCD, 0, 8);
+			LCDMoveCursorTo(&handlerLCD, 0, 8);
 			LCD_sendSTR(&handlerLCD, bufferLCD);
 			sprintf(bufferLCD,"%.2f ",(AccelY/256.f)*9.78);
-			LCD_setCursor(&handlerLCD, 1, 8);
+			LCDMoveCursorTo(&handlerLCD, 1, 8);
 			LCD_sendSTR(&handlerLCD, bufferLCD);
 			sprintf(bufferLCD,"%.2f ",(AccelZ/256.f)*9.78);
-			LCD_setCursor(&handlerLCD, 2, 8);
+			LCDMoveCursorTo(&handlerLCD, 2, 8);
 			LCD_sendSTR(&handlerLCD, bufferLCD);
-//			sprintf(bufferLCD,"%.2f ", 0.04);
-//			LCD_setCursor(&handlerLCD, 3, 8);
-//			LCD_sendSTR(&handlerLCD, "");
 			contadorLCD = 0;
 		}
+		//Refresco de la ultima linea cada 2 segundos
+		if(counterLastLine==16){
+			LCDMoveCursorTo(&handlerLCD, 3, 1);
+			LCD_sendSTR(&handlerLCD, "Bandwidth = 3200 Hz");
+		} else if (counterLastLine==32){
+			LCDMoveCursorTo(&handlerLCD, 3, 1);
+			LCD_sendSTR(&handlerLCD, "Sensib = 0.04 m/s^2");
+			counterLastLine=0;
+		}
 
-
+		// Se llama la funcion para el muestreo constante
 		guardarDato();
 
+		// Se llama la funcion para las señales PWM
 		PwmSignals();
 
 		//Hacemos un "eco" con el valor que nos llega por el serial
@@ -200,8 +213,7 @@ int main (void){
 						"z -> Aceleracion en el eje z \n"
 						"m -> Datos x;y;z del muestreo por 2s \n"
 						"d -> Valores del Dutty para PWMx,PWMy,PWMz \n"
-						"s -> Se detiene el muestreo constante de 1KHz \n"
-						"c -> Se continua el muestreo constante si se detuvo \n" );
+						"c -> Frecuencia del PLL" );
 			    rxData = '\0';
 			}
 			// COORDENADAS EN EL EJE X
@@ -238,23 +250,17 @@ int main (void){
 				}
 				rxData = '\0';
 			}
-			// valores de Dutty
+			// VALORES DEL DUTTY
 			else if(rxData == 'd'){
 				sprintf(bufferData, "DUTTY = PWMx %d ; PWMy %d ; PWMz %d \n", duttyValueX, duttyValueY, duttyValueZ);
 				writeMsg(&handlerCommTerminal, bufferData);
 			    rxData = '\0';
 			}
-			// STOP AL MUESTREO CONSTANTE
-			else if(rxData == 's'){
-				writeMsg(&handlerCommTerminal, "Se detiene el muestreo constante a 1KHz\n" );
-			    bandera = 0;
-			    interrupcion = 0;
-			    rxData = '\0';
-			}
-			// RESUME AL MUESTREO CONSTANTE
+			// FUNCION GETCONFIG() PARA FRECUENCIA DEL PLL
 			else if(rxData == 'c'){
-				writeMsg(&handlerCommTerminal, "Se continua el muestreo constante a 1KHz\n" );
-			    bandera = 1;
+				int FreqValue = getConfigPLL();
+				sprintf(bufferData, "Valor de la Frecuencia: %d Hz \n", FreqValue);
+				writeMsg(&handlerCommTerminal, bufferData);
 			    rxData = '\0';
 			}
 			else{
@@ -469,15 +475,12 @@ void guardarDato(void){
 		AccelZ_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_H);
 		AccelZ = AccelZ_high << 8 | AccelZ_low;
 	}
-//	x=(AccelX/256.f)*9.78;
-//	y=(AccelY/256.f)*9.78;
-//	z=(AccelZ/256.f)*9.78;
     datosAccel[0][interrupcion] =AccelX;
     datosAccel[1][interrupcion] =AccelY;
     datosAccel[2][interrupcion] =AccelZ;
 }
 
-
+/* Funcion para modificar el dutty de las señales PWM*/
 void PwmSignals(void){
 	duttyValueX = (int)10000+(AccelX/256.f)*9.78*1000;
 	duttyValueY = (int)10000+(AccelY/256.f)*9.78*1000;
@@ -497,6 +500,7 @@ void usart6Rx_Callback(void){
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
 	contadorLCD++;
+	counterLastLine++;
 }
 
 void BasicTimer4_Callback(void){

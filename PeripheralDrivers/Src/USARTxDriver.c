@@ -278,17 +278,6 @@ void writeMsg(USART_Handler_t *ptrUsartHandler, char *msgToSend){
 		writeChar(ptrUsartHandler, *msgToSend);
 		msgToSend++;
 	}
-//	while( !(ptrUsartHandler->ptrUSARTx->SR & USART_SR_TXE)){
-//		__NOP();
-//	}
-//
-//	char dataToSend = 0;
-//	int j=0;
-//	while(msgToSend[j]){
-//		dataToSend = msgToSend[j];
-//		writeChar(ptrUsartHandler, dataToSend);
-//		j++;
-//	}
 }
 /* Lectura del caracter que llega para la interface serial */
 uint8_t getRxData(void){

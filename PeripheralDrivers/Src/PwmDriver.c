@@ -38,20 +38,6 @@ void pwm_Config(PWM_Handler_t *ptrPwmHandler){
 	setDuttyCycle(ptrPwmHandler);
 
 	/* 2a. Estamos en UP_Mode, el limite se carga en ARR y se comienza en 0 */
-
-//	if(ptrTimerPWM== TIM2 || ptrPwmHandler->ptrTIMx == TIM5){
-//		// Configurar el registro que nos controla el modo up or down
-//		ptrTimerPWM->CR1 &= ~TIM_CR1_DIR;
-//		/* Reiniciamos el registro counter*/  //REVISAR COMO PONERLO PARA LOS 32 BITS
-//		ptrTimerPWM->CNT = 0;
-//	}
-//	else if(ptrTimerPWM == TIM3 || ptrPwmHandler->ptrTIMx == TIM4){
-//		// Configurar el registro que nos controla el modo up or down
-//		ptrTimerPWM->CR1 &= ~TIM_CR1_DIR;
-//		/* Reiniciamos el registro counter*/
-//		ptrTimerPWM->ptrTIMx->CNT = 0;
-//	}
-
 	ptrPwmHandler->ptrTIMx->ARR &= ~(TIM_CR1_DIR);
 //	ptrPwmHandler->ptrTIMx->CR1 &= ~TIM_CR1_DIR;
 //	ptrPwmHandler->ptrTIMx->CNT = 0;
@@ -68,7 +54,7 @@ void pwm_Config(PWM_Handler_t *ptrPwmHandler){
 		// Seleccionamos como salida el canal
 		ptrPwmHandler->ptrTIMx->CCMR1 &= ~TIM_CCMR1_CC1S;
 		// Output compare 1 fast enable Eficiencia
-//		ptrPwmHandler->ptrTIMx->CCMR1 |= TIM_CCMR1_OC1FE;
+		ptrPwmHandler->ptrTIMx->CCMR1 |= TIM_CCMR1_OC1FE;
 		// Output compare 1 preload enable
 		ptrPwmHandler->ptrTIMx->CCMR1 |= TIM_CCMR1_OC1PE;
 		// Output compare 1 mode (110)
@@ -76,7 +62,7 @@ void pwm_Config(PWM_Handler_t *ptrPwmHandler){
 		ptrPwmHandler->ptrTIMx->CCMR1 |= TIM_CCMR1_OC1M_1;
 		ptrPwmHandler->ptrTIMx->CCMR1 |= TIM_CCMR1_OC1M_2;
 		// Polaridad high
-//		ptrPwmHandler->ptrTIMx->CCER &= ~TIM_CCER_CC1P;
+		ptrPwmHandler->ptrTIMx->CCER &= ~TIM_CCER_CC1P;
 		break;
 	}
 
@@ -224,7 +210,7 @@ void setFrequency(PWM_Handler_t *ptrPwmHandler){
 void updateFrequency(PWM_Handler_t *ptrPwmHandler, uint16_t newFreq){
 //	// Actualizamos el registro que manipula el periodo
 //	ptrPwmHandler->config.periodo = newFreq;
-	ptrPwmHandler->ptrTIMx->ARR = newFreq;
+	ptrPwmHandler->ptrTIMx->ARR = newFreq ;
 	// Llamamos a la función que cambia la frecuencia
 	setFrequency(ptrPwmHandler);
 }

@@ -68,43 +68,43 @@ void LCD_sendata (I2C_Handler_t *ptrHandlerI2C, char data){
 void LCD_Clear (I2C_Handler_t *ptrHandlerI2C) {
 //	LCD_sendata (ptrHandlerI2C, 0x00);
 	LCD_sendCMD(ptrHandlerI2C, 0x01);
-	delay_50();
+	delay_ms(50);
 }
 
 void LCD_Init (I2C_Handler_t *ptrHandlerI2C) {
 
 	// Delay de inicializacion
-	delay_50();
+	delay_ms(50);
 	// Primer 0x30 para BF
 	LCD_sendCMD (ptrHandlerI2C, 0x30);
-	delay_5();
+	delay_ms(5);
 	// Segundo 0x30 para BF
 	LCD_sendCMD (ptrHandlerI2C, 0x30);
-	delay_1();
+	delay_ms(1);
 	// Tercer 0x30 para BF
 	LCD_sendCMD (ptrHandlerI2C, 0x30);
 
 	// Delay después de la secuencia inicial de inicializacion
-	delay_50();
+	delay_ms(50);
 
 	/*
 	 * Configuraciones para la escritura
 	 */
 	// Data lenght 4, lines 2, character font 5X8
 	LCD_sendCMD (ptrHandlerI2C, 0x20);
-	delay_50();
+	delay_ms(50);
 	LCD_sendCMD (ptrHandlerI2C, 0x28);
-	delay_50();
+	delay_ms(50);
 	// Display off
 	LCD_sendCMD (ptrHandlerI2C, 0x08);
-	delay_50();
+	delay_ms(50);
 	// Display Clear
 	LCD_sendCMD (ptrHandlerI2C, 0x01);
-	delay_50();
+	delay_ms(50);
 	// Entry mode
 	LCD_sendCMD (ptrHandlerI2C, 0x06);
 
-	delay_50();
+	delay_ms(50);
 	// Delay para encendido
 	LCD_sendCMD (ptrHandlerI2C, 0x0C);
 }
@@ -112,8 +112,9 @@ void LCD_Init (I2C_Handler_t *ptrHandlerI2C) {
 void LCD_sendSTR(I2C_Handler_t *ptrHandlerI2C, char *str) {
 	while (*str) LCD_sendata (ptrHandlerI2C, *str++);
 }
-void LCD_setCursor(I2C_Handler_t *ptrHandlerI2C, uint8_t x, uint8_t y) {
+void LCDMoveCursorTo(I2C_Handler_t *ptrHandlerI2C, uint8_t x, uint8_t y) {
 	uint8_t cursor;
+
 	switch (x) {
 	case 0 :
 		switch (y) {
@@ -218,22 +219,8 @@ void LCD_setCursor(I2C_Handler_t *ptrHandlerI2C, uint8_t x, uint8_t y) {
 void LCD_ClearScreen(I2C_Handler_t *ptrHandlerI2C){
 	char DataClean[64] = "                    ";
 	for(int i=0;i<4;i++){
-		LCD_setCursor(ptrHandlerI2C, i, 0);
+		LCDMoveCursorTo(ptrHandlerI2C, i, 0);
 		LCD_sendSTR(ptrHandlerI2C,DataClean);
 	}
 }
 
-void delay_50 (void){
-	delay_ms(50);
-}
-
-void delay_5 (void){
-	delay_ms(5);
-}
-
-void delay_1 (void){
-	delay_ms(1);
-}
-void delay_10 (void){
-	delay_ms(10);
-}

@@ -27,11 +27,6 @@ void configPLL(uint8_t frequency){
 		 * */
 		RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLN); // Limpiamos
 		/* Ponemos PLLN en 80 */
-//		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_0);
-//		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_1);
-//		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_2);
-//		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_3);
-//		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_6);
 
 		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_4);
 		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_6);
