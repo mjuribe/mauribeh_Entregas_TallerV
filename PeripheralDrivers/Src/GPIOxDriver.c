@@ -22,6 +22,8 @@
 
 void GPIO_Config (GPIO_Handler_t *pGPIOHandler){
 
+	RCC->CR &= ~(RCC_CR_HSEON);
+
 	//Variable para hacer todo paso a paso
 	uint32_t auxConfig = 0;
 	uint32_t auxPosition = 0;

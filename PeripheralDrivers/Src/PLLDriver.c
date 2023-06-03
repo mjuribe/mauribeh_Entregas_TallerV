@@ -62,19 +62,8 @@ void configPLL(uint8_t frequency){
 		/* Latencia del FLASH_ACR para que se demore y pueda hacer el registro */
 		// 3 Wait states
 		FLASH -> ACR &= ~(FLASH_ACR_LATENCY); // Limpiamos
-		FLASH -> ACR |= (FLASH_ACR_LATENCY_1WS);
-		FLASH -> ACR |= (FLASH_ACR_LATENCY_2WS);
+		FLASH -> ACR |= (FLASH_ACR_LATENCY_3WS);
 
-		/* Configuramos el MC01 (PIN A8 como funcion alternativa 00) */
-
-		// Seleccionamos la senal PLL
-		RCC -> CFGR |= RCC_CFGR_MCO1_0;
-		RCC -> CFGR |= RCC_CFGR_MCO1_1;
-
-		// Utilizamos un prescaler para poder ver la senal en el osciloscopio
-		RCC -> CFGR |= RCC_CFGR_MCO1PRE_0;
-		RCC -> CFGR |= RCC_CFGR_MCO1PRE_1;
-		RCC -> CFGR |= RCC_CFGR_MCO1PRE_2;
 		break;
 	default:
 		/* Division factor for the main PLL (PLL) input clock
@@ -129,10 +118,10 @@ int getConfigPLL(void){
 	uint32_t frequencyValue =0;
 	uint32_t RCCPLLn = ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos);
 
-	if(RCC->CFGR | (RCC_CR_PLLON)){
+	if(RCC->CFGR & RCC_CFGR_SWS_PLL){
 		frequencyValue= (RCCPLLn*1000000);
-	}else if(RCC->CFGR &= ~(RCC_CR_PLLON)){
-		frequencyValue = (RCC->CFGR & RCC_CFGR_SW_HSI);
+	}else if(RCC->CFGR & RCC_CFGR_SWS_HSI){
+		frequencyValue = 16000000;
 	}
 	return frequencyValue;
 }
