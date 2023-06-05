@@ -403,5 +403,3 @@ void BasicTimer4_Callback(void){
 		}
 	}
 }
-
-

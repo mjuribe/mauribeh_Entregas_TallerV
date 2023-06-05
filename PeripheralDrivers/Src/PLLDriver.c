@@ -11,6 +11,12 @@ void configPLL(uint8_t frequency){
 	// HSI clock selected as PLL and PLLI2S clock entry
 	RCC -> PLLCFGR &= ~(RCC_PLLCFGR_PLLSRC);
 
+	RCC->CR |= 15<<RCC_CR_HSITRIM_Pos;
+
+	while (!(RCC->CR & RCC_CR_HSIRDY)){
+		__NOP();
+	}
+
 	switch (frequency){
 	case 0:
 		/* Division factor for the main PLL (PLL) input clock
@@ -50,12 +56,14 @@ void configPLL(uint8_t frequency){
 		 */
 		RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLM); // Limpiamos
 		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLM_3); // Ponemos un 8 en el PLLM
+		//RCC->PLLCFGR |= (8<<RCC_PLLCFGR_PLLM_Pos);
 
 		RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLN); // Limpiamos
 		/* Ponemos PLLN en 100 */
 		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_2);
 		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_5);
 		RCC->PLLCFGR |= (RCC_PLLCFGR_PLLN_6);
+		//RCC->PLLCFGR |= (100<<RCC_PLLCFGR_PLLN_Pos);
 
 		RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLP); // Limpiamos
 

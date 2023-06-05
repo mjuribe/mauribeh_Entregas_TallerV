@@ -12,7 +12,13 @@ uint16_t	adcRawData = 0;
 
 void adc_Config(ADC_Config_t *adcConfig){
 	/* 1. Configuramos el PinX para que cumpla la función de canal análogo deseado. */
-	configAnalogPin(adcConfig->channel);
+	if (adcConfig->mode == SINGLE){
+		configAnalogPin(adcConfig->channel[0]);
+	} else if(adcConfig->mode == MULTIPLE){
+		for (uint8_t i=0; i<adcConfig->numberOfChannels; i++){
+			configAnalogPin(adcConfig->channel[i]);
+		}
+	}
 
 	/* 2. Activamos la señal de reloj para el periférico ADC1 (bus APB2)*/
 	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
@@ -52,12 +58,17 @@ void adc_Config(ADC_Config_t *adcConfig){
 
 	default:
 	{
+		__NOP();
 		break;
 	}
 	}
 
 	/* 4. Configuramos el modo Scan como desactivado */
-	ADC1->CR1 &= ~ADC_CR1_SCAN; //VARIOS CANALES
+	if (adcConfig->mode == SINGLE){
+		ADC1->CR1 &= ~ADC_CR1_SCAN;
+	} else if(adcConfig->mode == MULTIPLE){
+		ADC1->CR1 |= ADC_CR1_SCAN;
+	}
 
 	/* 5. Configuramos la alineación de los datos (derecha o izquierda) */
 	if(adcConfig->dataAlignment == ADC_ALIGNMENT_RIGHT){
@@ -65,7 +76,6 @@ void adc_Config(ADC_Config_t *adcConfig){
 		ADC1->CR2 &= ~ADC_CR2_ALIGN;
 	}
 	else{
-
 		// Alineación a la izquierda (para algunos cálculos matemáticos)
 		ADC1->CR2 |= ADC_CR2_ALIGN;
 	}
@@ -73,20 +83,60 @@ void adc_Config(ADC_Config_t *adcConfig){
 	/* 6. Desactivamos el "continuos mode" */
 	ADC1->CR2 &= ~ADC_CR2_CONT;
 
-	/* 7. Acá se debería configurar el sampling...*/
-	if(adcConfig->channel < ADC_CHANNEL_9){
-		ADC1->SMPR2 |= adcConfig->samplingPeriod<<(adcConfig->channel*3);
+	/* 7. Se configura el sampling */
+	if (adcConfig->mode == SINGLE){
+		if(adcConfig->channel[0] < ADC_CHANNEL_10 ){
+				ADC1->SMPR2 |= adcConfig->samplingPeriod[0]<<(adcConfig->channel[0]*3);
+			}
+			else{
+				ADC1->SMPR1 |= adcConfig->samplingPeriod[0]<<((adcConfig->channel[0]%10)*3);
+			}
+	} else if(adcConfig->mode == MULTIPLE){
+		for(uint8_t i=0; i<(adcConfig->numberOfChannels); i++){
+			if(adcConfig->channel[i] < ADC_CHANNEL_10){
+				ADC1->SMPR2 |= adcConfig->samplingPeriod[i]<<(adcConfig->channel[i]*3);
+			}else{
+				ADC1->SMPR1 |= adcConfig->samplingPeriod[i]<<((adcConfig->channel[i]%10)*3);
+			}
+		}
 	}
-	else{
-		ADC1->SMPR1 |= adcConfig->samplingPeriod<<((adcConfig->channel%10)*3);
-	}
+
+
 
 	/* 8. Configuramos la secuencia y cuantos elementos hay en la secuencia */
 	// Al hacerlo todo 0, estamos seleccionando solo 1 elemento en el conteo de la secuencia
-	ADC1->SQR1 = 0;
+	if (adcConfig->mode == SINGLE){
+		ADC1->SQR1 &= ~ADC_SQR1_L;
+	} else if(adcConfig->mode == MULTIPLE){
+		ADC1->SQR1 |= (adcConfig->numberOfChannels-1)<<ADC_SQR1_L_Pos;
+	}
 
 	// Asignamos el canal de la conversión a la primera posición en la secuencia
-	ADC1->SQR3 |= (adcConfig->channel << 0);
+	if (adcConfig->mode == SINGLE){
+		ADC1->CR2 &= ~ADC_CR2_EOCS;
+		ADC1->SQR3 |= (adcConfig->channel[0] << 0);
+	} else if(adcConfig->mode == MULTIPLE){
+		ADC1->CR2 |= ADC_CR2_EOCS;
+		for(uint8_t i=0; i<(adcConfig->numberOfChannels); i++){
+			if (i<6){
+				ADC1->SQR3 |= (adcConfig->channel[i] << 5*i);
+			} else if (i<12){
+				ADC1->SQR2 |= (adcConfig->channel[i] << 5*(i-6));
+			} else {
+				ADC1->SQR1 |= (adcConfig->channel[i] << 5*(i-12));
+			}
+		}
+	}
+
+	if(adcConfig->externalTrigger == ADC_EXTERN_TIM_5_CHANNEL_3_FALLING){
+		ADC1->CR2 |= ADC_CR2_EXTEN_1;
+		ADC1->CR2 |= 0b1100<<ADC_CR2_EXTSEL_Pos;
+	} else if (adcConfig->externalTrigger == ADC_EXTERN_TIM_5_CHANNEL_3_RISING){
+		ADC1->CR2 |= ADC_CR2_EXTEN_0;
+		ADC1->CR2 |= 0b1100<<ADC_CR2_EXTSEL_Pos;
+	} else{
+		ADC1->CR2 &= ~ADC_CR2_EXTEN;
+	}
 
 	/* 9. Configuramos el preescaler del ADC en 4:1 (el mas rápido que se puede tener) */
 	ADC->CCR |= ADC_CCR_ADCPRE_0;
