@@ -131,9 +131,9 @@ void adc_Config(ADC_Config_t *adcConfig){
 	if(adcConfig->externalTrigger == ADC_EXTERN_TIM_5_CHANNEL_3_FALLING){
 		ADC1->CR2 |= ADC_CR2_EXTEN_1;
 		ADC1->CR2 |= 0b1100<<ADC_CR2_EXTSEL_Pos;
-	} else if (adcConfig->externalTrigger == ADC_EXTERN_TIM_5_CHANNEL_3_RISING){
+	} else if (adcConfig->externalTrigger == ADC_EXTERN_TIM_4_CHANNEL_4_RISING){
 		ADC1->CR2 |= ADC_CR2_EXTEN_0;
-		ADC1->CR2 |= 0b1100<<ADC_CR2_EXTSEL_Pos;
+		ADC1->CR2 |= 0b1001<<ADC_CR2_EXTSEL_Pos;
 	} else{
 		ADC1->CR2 &= ~ADC_CR2_EXTEN;
 	}

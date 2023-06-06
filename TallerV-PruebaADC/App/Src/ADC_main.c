@@ -113,16 +113,6 @@ void initSystem(void){
 	/* Cargando la configuracion del TIM2 en los registros */
 	BasicTimer_Config(&handlerBlinkyTimer);
 
-	/* Configuracion del TIM4 para un muestreo con una Freq de 1KHz  */
-	handlerMuestreo.ptrTIMx                               = TIM4;
-	handlerMuestreo.TIMx_Config.TIMx_mode                 = BTIMER_MODE_UP;
-	handlerMuestreo.TIMx_Config.TIMx_speed                = BTIMER_SPEED_100us;
-	handlerMuestreo.TIMx_Config.TIMx_period               = 20;
-	handlerMuestreo.TIMx_Config.TIMx_interruptEnable      = 1;
-
-	/* Cargando la configuracion del TIM4 en los registros */
-	BasicTimer_Config(&handlerMuestreo);
-
 	// ---------------------------- CONFIGURACION DE LA COMUNICACION SERIAL  ----------------------------------------
 	handlerPinTX.pGPIOx                               = GPIOA;
 	handlerPinTX.GPIO_PinConfig.GPIO_PinNumber        = PIN_2;
@@ -149,21 +139,21 @@ void initSystem(void){
 	USART_Config(&handlerCommTerminal);
 
 //	// ---------------------------- CONFIGURACION DEL PWM  ----------------------------------------
-//	handlerPinPwmChannel1.pGPIOx                                = GPIOA; NO SE PUEDE USAR PORQUE ES EL MISMO DE A2
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinNumber         = PIN_2;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
-//	/* Cargamos la configuracion en los registros del MCU */
-//	GPIO_Config(&handlerPinPwmChannel1);
+	handlerPinPwmChannel1.pGPIOx                                = GPIOB;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinNumber         = PIN_9;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
+	/* Cargamos la configuracion en los registros del MCU */
+	GPIO_Config(&handlerPinPwmChannel1);
 
 	/* Configuracion del TIM3 para que genere la signal PWM*/
-	handlerSignalPwm1.ptrTIMx                = TIM5;
-	handlerSignalPwm1.config.channel         = PWM_CHANNEL_3;
-	handlerSignalPwm1.config.duttyCicle      = 10;
-	handlerSignalPwm1.config.periodo         = 20;
+	handlerSignalPwm1.ptrTIMx                = TIM4;
+	handlerSignalPwm1.config.channel         = PWM_CHANNEL_4;
+	handlerSignalPwm1.config.duttyCicle      = 3;
+	handlerSignalPwm1.config.periodo         = 6;
 	handlerSignalPwm1.config.prescaler       = 16;
 	/* Cargamos la configuracion en los registros del MCU */
 	pwm_Config(&handlerSignalPwm1);
@@ -180,7 +170,7 @@ void initSystem(void){
 	samplingPeriods[0]			  = ADC_SAMPLING_PERIOD_28_CYCLES;
 	samplingPeriods[1]			  = ADC_SAMPLING_PERIOD_28_CYCLES;
 	adcConfig1.samplingPeriod     = samplingPeriods;
-	adcConfig1.externalTrigger    = ADC_EXTERN_TIM_5_CHANNEL_3_RISING;
+	adcConfig1.externalTrigger    = ADC_EXTERN_TIM_4_CHANNEL_4_RISING;
 	adcConfig1.mode               = MULTIPLE;
 	adc_Config(&adcConfig1);
 
