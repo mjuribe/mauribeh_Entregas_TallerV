@@ -11,11 +11,11 @@ void configPLL(uint8_t frequency){
 	// HSI clock selected as PLL and PLLI2S clock entry
 	RCC -> PLLCFGR &= ~(RCC_PLLCFGR_PLLSRC);
 
-	RCC->CR |= 15<<RCC_CR_HSITRIM_Pos;
-
-	while (!(RCC->CR & RCC_CR_HSIRDY)){
-		__NOP();
-	}
+//	RCC->CR |= 15<<RCC_CR_HSITRIM_Pos;
+//
+//	while (!(RCC->CR & RCC_CR_HSIRDY)){
+//		__NOP();
+//	}
 
 	switch (frequency){
 	case 0:

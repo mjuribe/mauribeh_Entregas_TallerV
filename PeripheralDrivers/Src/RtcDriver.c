@@ -1,8 +1,8 @@
 
 #include "RtcDriver.h"
 
-
-void config_RTC(RTC_t *pRTC){
+//void config_RTC(RTC_t *pRTC)
+void config_RTC(void){
 
 	// Activamos la señal de reloj para el PWR
 	RCC -> APB1ENR |= RCC_APB1ENR_PWREN;
@@ -13,6 +13,11 @@ void config_RTC(RTC_t *pRTC){
 	// Activamos el LSE (LOW SPEED EXTERNAL 32KHz)
 	RCC -> BDCR |= RCC_BDCR_LSEON;
 
+
+	/* Wait until LSE is ready */
+	while(!(RCC->BDCR & RCC_BDCR_LSERDY)){
+		__NOP() ;
+	}
 	// Habilitamos la señal proveniente del LSE (LOW SPEED EXTERNAL 32KHz)
 	RCC ->BDCR |= RCC_BDCR_RTCSEL_0;
 
@@ -29,12 +34,19 @@ void config_RTC(RTC_t *pRTC){
 	RTC -> ISR |= RTC_ISR_INIT;
 
 	/* 2.0 Ponemos en 1 el bit de INITF */
-	RTC -> ISR |= RTC_ISR_INITF;
+	while((RTC->ISR & RTC_ISR_INITF)==0){
+		__NOP();
+	}
 
 	/* 3.0 Configuramos el preescaler */
 
 	RTC -> PRER |= RTC_PRER_PREDIV_A;
 	RTC -> PRER |= (0xFF << RTC_PRER_PREDIV_S_Pos);
+
+    RTC->CR |= RTC_CR_BYPSHAD;
+
+	RTC->TR = 0;
+	RTC->DR = 0;
 
 	/* 4.0 Cargamos los valores del calendario (DR - Date Register) y de la hora (TR - Time Register)*/
 
@@ -42,23 +54,30 @@ void config_RTC(RTC_t *pRTC){
 	RTC -> CR &= ~(RTC_CR_FMT);
 	RTC -> TR &= ~(RTC_TR_PM);
 
-	// Escribimos las horas todo funciones
-	RTC -> TR |= (decToBCD(pRTC->hour)) << RTC_TR_HU_Pos;
+//	// Escribimos las horas todo funciones
+//	RTC -> TR |= (decToBCD(pRTC->hour)) << RTC_TR_HU_Pos;
+//
+//	// Escribimos los minutos
+//	RTC -> TR |= (decToBCD(pRTC->minutes)) << RTC_TR_MNU_Pos;
+//
+//	// Escribimos el dia
+//	RTC -> DR |= (decToBCD(pRTC->date)) << RTC_DR_DU_Pos;
+//
+//	// Escribimos el mes
+//	RTC -> DR |= (decToBCD(pRTC->month)) << RTC_DR_MU_Pos;
+//
+//	// Escribimos el año
+//	RTC -> DR |= (decToBCD(pRTC->year)) << RTC_DR_YU_Pos;
 
-	// Escribimos los minutos
-	RTC -> TR |= (decToBCD(pRTC->minutes)) << RTC_TR_MNU_Pos;
+//	// Escribimos el día de la semana
+//	RTC -> DR |= (pRTC->weekDay) << RTC_DR_WDU_Pos;
 
-	// Escribimos el dia
-	RTC -> DR |= (decToBCD(pRTC->date)) << RTC_DR_DU_Pos;
-
-	// Escribimos el mes
-	RTC -> DR |= (decToBCD(pRTC->month)) << RTC_DR_MU_Pos;
-
-	// Escribimos el año
-	RTC -> DR |= (decToBCD(pRTC->year)) << RTC_DR_YU_Pos;
-
-	// Escribimos el día de la semana
-	RTC -> DR |= (pRTC->weekDay) << RTC_DR_WDU_Pos;
+	RTC -> TR |= (decToBCD(11)) << RTC_TR_HU_Pos;
+	RTC -> TR |= (decToBCD(45)) << RTC_TR_MNU_Pos;
+	RTC -> DR |= (decToBCD(18)) << RTC_DR_DU_Pos;
+	RTC -> DR |= (decToBCD(12)) << RTC_DR_MU_Pos;
+	RTC -> DR |= (decToBCD(01)) << RTC_DR_YU_Pos;
+	RTC -> DR |= (RTC_WEEKDAY_SUNDAY) << RTC_DR_WDU_Pos;
 
 	/* 5.0 Salimos del modo de inicialización */
 	RTC -> ISR &= ~RTC_ISR_INIT;
@@ -70,13 +89,15 @@ void config_RTC(RTC_t *pRTC){
 
 // Función para convertir de numeros decimales a código BCD
 uint8_t decToBCD(int val){
-	return (uint8_t) ((val/10*16) + (val%10));
+	uint8_t variable= (uint8_t) ((val/10*16) + (val%10));
+	return variable;
 }
 
 // Función para convertir de código BCD a numeros decimales
 
 int BCDToDec(uint8_t val){
-	return (int) ((val/16*10) + (val%16));
+	int variable =(int) ((val/16*10) + (val%16));
+	return variable;
 }
 
 void setSeconds(int val){

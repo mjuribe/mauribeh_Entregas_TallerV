@@ -22,6 +22,7 @@
 #include "I2CDriver.h"
 #include "PwmDriver.h"
 #include "PLLDriver.h"
+#include "RtcDriver.h"
 
 /* Definicion de las macros */
 #define PLL_100_CLOCK_CONFIGURED  2
@@ -95,27 +96,21 @@ void selectMCOpresc(uint16_t prescaler);
 int main (void){
 	// Activamos el coprocesador matematico FPU
 	SCB->CPACR |= (0xF << 20);
-
-
 	//Inicio del sistemaS
 	initSystem();
 	//Frecuencia del micro a 80MHz
 	configPLL(PLL_100);
-	//Muestreo a 3200Hz
-	i2c_writeSingleRegister(&handlerAccelerometer, BW_RATE , 0xF);
-	//Reset inicial del acelerometro
-	i2c_writeSingleRegister(&handlerAccelerometer, POWER_CTL , 0x2D);
 	// Se configura el systick a 80MHz
 	config_SysTick_ms(PLL_100_CLOCK_CONFIGURED);
+
+
+	config_RTC();
 	//Imprimir un mensaje de inicio
 	writeMsg(&handlerCommTerminal, "Examen - Taller V \n"
 			"Accel ADXL-345 \n"
 			"Frecuencia del microcontrolador: 100 MHz \n");
 
 	while(1){
-		// Se llama la funcion para el muestreo constante
-
-
 		// El caracter '@' nos indica que es el final de la cadena
 		if(rxData != '\0'){
 			bufferReception[counterReception] = rxData;
@@ -145,6 +140,7 @@ int main (void){
 
 
 void initSystem(void){
+
 
 	RCC->CR &= ~(RCC_CR_HSEON);
 	RCC->CR &= ~(RCC_CR_HSEBYP);
@@ -195,26 +191,6 @@ void initSystem(void){
 	/* Cargamos la configuracion del Pin en los registros*/
 	GPIO_Config(&handlerPinMCO);
 
-	// ---------------------------- CONFIGURACION PINES DEL I2C  ----------------------------------------
-	/* Pines del acelerometro */
-	handlerI2cSCL.pGPIOx                                      = GPIOB;
-	handlerI2cSCL.GPIO_PinConfig.GPIO_PinNumber               = PIN_8;
-	handlerI2cSCL.GPIO_PinConfig.GPIO_PinMode                 = GPIO_MODE_ALTFN;
-	handlerI2cSCL.GPIO_PinConfig.GPIO_PinOPType               = GPIO_OTYPE_OPENDRAIN;
-	handlerI2cSCL.GPIO_PinConfig.GPIO_PinSpeed                = GPIO_OSPEED_FAST;
-	handlerI2cSCL.GPIO_PinConfig.GPIO_PinPuPdControl          = GPIO_PUPDR_PULLUP;
-	handlerI2cSCL.GPIO_PinConfig.GPIO_PinAltFunMode           = AF4;
-	GPIO_Config(&handlerI2cSCL);
-
-	handlerI2cSDA.pGPIOx                                      = GPIOB;
-	handlerI2cSDA.GPIO_PinConfig.GPIO_PinNumber               = PIN_9;
-	handlerI2cSDA.GPIO_PinConfig.GPIO_PinMode                 = GPIO_MODE_ALTFN;
-	handlerI2cSDA.GPIO_PinConfig.GPIO_PinOPType               = GPIO_OTYPE_OPENDRAIN;
-	handlerI2cSDA.GPIO_PinConfig.GPIO_PinSpeed                = GPIO_OSPEED_FAST;
-	handlerI2cSDA.GPIO_PinConfig.GPIO_PinPuPdControl          = GPIO_PUPDR_PULLUP;
-	handlerI2cSDA.GPIO_PinConfig.GPIO_PinAltFunMode           = AF4;
-	GPIO_Config(&handlerI2cSDA);
-
 	// ---------------------------- CONFIGURACION DE LA COMUNICACION SERIAL  ----------------------------------------
 	handlerPinTX.pGPIOx                               = GPIOA;
 	handlerPinTX.GPIO_PinConfig.GPIO_PinNumber        = PIN_11;
@@ -229,52 +205,22 @@ void initSystem(void){
 	GPIO_Config(&handlerPinRX);
 
 	handlerCommTerminal.ptrUSARTx                       = USART6;
-	handlerCommTerminal.USART_Config.USART_baudrate     = USART_BAUDRATE_115200;
+	handlerCommTerminal.USART_Config.USART_frequency    = 100;
+	handlerCommTerminal.USART_Config.USART_baudrate     = USART_BAUDRATE_19200;
 	handlerCommTerminal.USART_Config.USART_datasize     = USART_DATASIZE_8BIT;
 	handlerCommTerminal.USART_Config.USART_parity       = USART_PARITY_NONE;
 	handlerCommTerminal.USART_Config.USART_stopbits     = USART_STOPBIT_1;
 	handlerCommTerminal.USART_Config.USART_mode         = USART_MODE_RXTX;
 	handlerCommTerminal.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE;
 	handlerCommTerminal.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
-	handlerCommTerminal.USART_Config.USART_frequency    = 100;
 
 	USART_Config(&handlerCommTerminal);
-
-	// ---------------------------- CONFIGURACION DEL ACELEROMETRO  ----------------------------------------
-	handlerAccelerometer.ptrI2Cx                            = I2C1;
-	handlerAccelerometer.modeI2C                            = I2C_MODE_FM;
-	handlerAccelerometer.slaveAddress                       = ACCEL_ADDRESS;
-	handlerAccelerometer.mainClock							= MAIN_CLOCK_100_MHz_FOR_I2C;
-	handlerAccelerometer.maxI2C_FM							= I2C_MAX_RISE_TIME_FM_100MHz;
-	handlerAccelerometer.modeI2C_FM							= I2C_MODE_FM_SPEED_400KHz_100MHz;
-
-	i2c_config(&handlerAccelerometer);
 
 	// ---------------------------- CONFIGURACION INICIAL DEL MCO  ----------------------------------------
 	// Seleccionamos la senal HSI
 	RCC -> CFGR &= ~RCC_CFGR_MCO1;
 	RCC -> CFGR &= ~RCC_CFGR_MCO1PRE;
 
-
-}
-
-/* Funcion para el muestreo inicial por 2 segundos */
-void guardarDato(void){
-	bandera=1;
-	if(interrupcion<2000){
-		AccelX_low =  i2c_readSingleRegister(&handlerAccelerometer, ACCEL_XOUT_L);
-		AccelX_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_XOUT_H);
-		AccelX = AccelX_high << 8 | AccelX_low;
-		AccelY_low = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_YOUT_L);
-		AccelY_high = i2c_readSingleRegister(&handlerAccelerometer,ACCEL_YOUT_H);
-		AccelY = AccelY_high << 8 | AccelY_low;
-		AccelZ_low = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_L);
-		AccelZ_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_H);
-		AccelZ = AccelZ_high << 8 | AccelZ_low;
-	}
-    datosAccel[0][interrupcion] =AccelX;
-    datosAccel[1][interrupcion] =AccelY;
-    datosAccel[2][interrupcion] =AccelZ;
 }
 
 /* Callbacks de las interrupciones */
@@ -391,17 +337,6 @@ void parseCommands(char *ptrBufferReception){
 /* Callbacks de los Timers */
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
-	counterLastLine++;
-}
-
-void BasicTimer4_Callback(void){
-//	guardarDato();
-	if (bandera){
-		interrupcion++;
-		if(interrupcion==2000){
-			interrupcion=0;
-		}
-	}
 }
 
 
