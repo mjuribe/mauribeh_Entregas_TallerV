@@ -69,19 +69,26 @@ int main (void){
 			writeChar(&handlerCommTerminal, rxData);
 			if(rxData == 'm'){
 				writeMsg(&handlerCommTerminal, greetingMsg);
+			}else if(rxData == 'a'){
+				writeMsg(&handlerCommTerminal, "ADC");
+				for (int i=0; i<256; i++){
+					sprintf(bufferData, "%u ; %u ; %d \n", (unsigned int )datosADC[0][i],(unsigned int )datosADC[1][i], i);
+					writeMsg(&handlerCommTerminal, bufferData);
+				}
+				rxData = '\0';
 			}
 			//Para que no vuelva entrar. Solo cambia debido a la interrupcion
 			rxData = '\0';
 		}
 
-		//Hacemos un analisis de la cadena de datos obtenida
-		if (adcIsComplete == true){
-			//sprintf(bufferData, "%u \n", (unsigned int )adcDataSingle);
-			sprintf(bufferData, "%u\t%u \n", (unsigned int )adcData[0],(unsigned int )adcData[1]);
-			writeMsg(&handlerCommTerminal, bufferData);
-			adcIsComplete = false;
-
-		}
+//		//Hacemos un analisis de la cadena de datos obtenida
+//		if (adcIsComplete == true){
+//			//sprintf(bufferData, "%u \n", (unsigned int )adcDataSingle);
+//			sprintf(bufferData, "%u\t%u \n", (unsigned int )adcData[0],(unsigned int )adcData[1]);
+//			writeMsg(&handlerCommTerminal, bufferData);
+//			adcIsComplete = false;
+//
+//		}
 	} // Fin del while
 	return(0);
 } // Fin del main
@@ -190,13 +197,13 @@ void adcComplete_Callback(void){
 
 	adcData[counterADC] = getADC();
 	datosADC[counterADC][numADC]= adcData[counterADC];
-	numADC++;
 	counterADC++;
 	if(numADC==256){
 		numADC=0;
 	}
 	if(counterADC==2){
 		counterADC=0;
+		numADC++;
 	}
 	adcIsComplete = true;
 }
