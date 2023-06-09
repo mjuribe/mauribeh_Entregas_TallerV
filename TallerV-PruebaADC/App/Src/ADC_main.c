@@ -1,7 +1,7 @@
 /**
  * **************************************************************************************************
- * @file     : Maria Jose Uribe Henao
- * @author   : AccelTest_Main.c
+ * @file     : ADC_main.c
+ * @author   : Maria Jose Uribe Henao
  * @brief    : PRUEBAS EXAMEN - TALLER V
  * **************************************************************************************************
  */
@@ -72,7 +72,7 @@ int main (void){
 			}else if(rxData == 'a'){
 				writeMsg(&handlerCommTerminal, "ADC");
 				for (int i=0; i<256; i++){
-					sprintf(bufferData, "%u ; %u ; %d \n", (unsigned int )datosADC[0][i],(unsigned int )datosADC[1][i], i);
+					sprintf(bufferData, "%u\t%u \n", (unsigned int )datosADC[0][i],(unsigned int )datosADC[1][i], i);
 					writeMsg(&handlerCommTerminal, bufferData);
 				}
 				rxData = '\0';
@@ -80,15 +80,6 @@ int main (void){
 			//Para que no vuelva entrar. Solo cambia debido a la interrupcion
 			rxData = '\0';
 		}
-
-//		//Hacemos un analisis de la cadena de datos obtenida
-//		if (adcIsComplete == true){
-//			//sprintf(bufferData, "%u \n", (unsigned int )adcDataSingle);
-//			sprintf(bufferData, "%u\t%u \n", (unsigned int )adcData[0],(unsigned int )adcData[1]);
-//			writeMsg(&handlerCommTerminal, bufferData);
-//			adcIsComplete = false;
-//
-//		}
 	} // Fin del while
 	return(0);
 } // Fin del main

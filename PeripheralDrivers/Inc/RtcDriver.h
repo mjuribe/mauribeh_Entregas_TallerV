@@ -29,15 +29,13 @@ typedef struct{
 }RTC_t;
 
 // Función de configuración del RTC
-//void config_RTC(RTC_t *pRTC);
-void config_RTC(void);
-
+void config_RTC(RTC_t *pRTC);
 // Función para convertir de decimal a BCD
 uint8_t decToBCD(int val);
 // Función para convertir de BCD a decimal
 int BCDToDec(uint8_t val);
-
-
+void* getTime(void);
+void* getDate(void);
 
 #endif /* RTCDRIVER_H_ */
 

@@ -1,7 +1,7 @@
 /**
  * **************************************************************************************************
- * @file     : Maria Jose Uribe Henao
- * @author   : AccelTest_Main.c
+ * @file     : Examen_main.c
+ * @author   : Maria Jose Uribe Henao
  * @brief    : PRUEBAS EXAMEN - TALLER V
  * **************************************************************************************************
  */
@@ -23,6 +23,7 @@
 #include "PwmDriver.h"
 #include "PLLDriver.h"
 #include "RtcDriver.h"
+#include "AdcDriver.h"
 
 /* Definicion de las macros */
 #define PLL_100_CLOCK_CONFIGURED  2
@@ -40,7 +41,7 @@
 #define WHO_AM_I                 0      //DEVID
 
 /* Definicion de variables */
-GPIO_Handler_t handlerPinMCO = {0};
+
 /* Elementos para hacer la comunicacion serial */
 GPIO_Handler_t handlerPinTX = {0};
 GPIO_Handler_t handlerPinRX = {0};
@@ -49,10 +50,17 @@ USART_Handler_t handlerCommTerminal = {0};
 // Handler del Blinky simple
 GPIO_Handler_t handlerBlinkyPin = {0};
 
+// Handler pin del MCO
+GPIO_Handler_t handlerPinMCO = {0};
+
+/* Handler del RTC */
+RTC_t handlerRTC = {0};
+
 /* Handler de los timers */
 BasicTimer_Handler_t handlerBlinkyTimer = {0};
 BasicTimer_Handler_t handlerMuestreo = {0};
 
+// Variables para el acelerometro
 uint8_t AccelX_low =0;
 uint8_t AccelX_high=0;
 int16_t AccelX=0;
@@ -68,19 +76,35 @@ GPIO_Handler_t handlerI2cSDA = {0};
 GPIO_Handler_t handlerI2cSCL = {0};
 I2C_Handler_t handlerAccelerometer = {0};
 
+/* Handler para las señales por PWM */
+GPIO_Handler_t handlerPinPwmChannel1 = {0};
+PWM_Handler_t handlerSignalPwm1 = {0};
+uint16_t duttyValue1 = 10;
+
 /* Contadores y banderas */
-uint8_t rxData = 0;
-uint8_t i2cBuffer ={0};
+uint8_t  rxData = 0;
+uint8_t  i2cBuffer ={0};
 uint32_t interrupcion=0;
-uint8_t bandera=0;
-uint8_t counterLastLine;
+uint8_t  bandera=0;
+uint8_t  counterLastLine;
 uint16_t counterReception=0;
+uint8_t  counterADC =0;
+uint16_t numADC =0;
+uint8_t  adcArrayOn =0;
+
+/* Configuracion ADC */
+ADC_Config_t adcConfig1 = {0};
+uint16_t adcDataSingle;
+uint8_t stringComplete = 0;
 
 /* Arreglos */
+uint32_t datosADC[2][256]={0};
+uint16_t adcData[2] = {0};
 char bufferData[64]= "Accel ADXL-345";
 float datosAccel[3][2000];
+
+/* Configuracion de comandos por terminal serial*/
 char bufferReception[64];
-uint8_t stringComplete = 0;
 char userMsg[64];
 char cmd[64];
 unsigned int firstParameter =0;
@@ -102,9 +126,6 @@ int main (void){
 	configPLL(PLL_100);
 	// Se configura el systick a 80MHz
 	config_SysTick_ms(PLL_100_CLOCK_CONFIGURED);
-
-
-	config_RTC();
 	//Imprimir un mensaje de inicio
 	writeMsg(&handlerCommTerminal, "Examen - Taller V \n"
 			"Accel ADXL-345 \n"
@@ -169,16 +190,6 @@ void initSystem(void){
 	/* Cargando la configuracion del TIM2 en los registros */
 	BasicTimer_Config(&handlerBlinkyTimer);
 
-	/* Configuracion del TIM4 para un muestreo con una Freq de 1KHz  */
-	handlerMuestreo.ptrTIMx                               = TIM4;
-	handlerMuestreo.TIMx_Config.TIMx_mode                 = BTIMER_MODE_UP;
-	handlerMuestreo.TIMx_Config.TIMx_speed                = BTIMER_SPEED_100Mhz_100us;
-	handlerMuestreo.TIMx_Config.TIMx_period               = 50;
-	handlerMuestreo.TIMx_Config.TIMx_interruptEnable      = 1;
-
-	/* Cargando la configuracion del TIM4 en los registros */
-	BasicTimer_Config(&handlerMuestreo);
-
 	/*Configuracion del Pin para ver la velocidad */
 	handlerPinMCO.pGPIOx                                  = GPIOA;
 	handlerPinMCO.GPIO_PinConfig.GPIO_PinNumber           = PIN_8;
@@ -206,7 +217,7 @@ void initSystem(void){
 
 	handlerCommTerminal.ptrUSARTx                       = USART6;
 	handlerCommTerminal.USART_Config.USART_frequency    = 100;
-	handlerCommTerminal.USART_Config.USART_baudrate     = USART_BAUDRATE_19200;
+	handlerCommTerminal.USART_Config.USART_baudrate     = USART_BAUDRATE_115200;
 	handlerCommTerminal.USART_Config.USART_datasize     = USART_DATASIZE_8BIT;
 	handlerCommTerminal.USART_Config.USART_parity       = USART_PARITY_NONE;
 	handlerCommTerminal.USART_Config.USART_stopbits     = USART_STOPBIT_1;
@@ -216,10 +227,55 @@ void initSystem(void){
 
 	USART_Config(&handlerCommTerminal);
 
+	handlerRTC.seconds                                  = 12;
+	handlerRTC.minutes                                  = 34;
+	handlerRTC.hour                                     = 6;
+	handlerRTC.weekDay                                  = RTC_WEEKDAY_WEDNESDAY;
+	handlerRTC.date                                     = 7;
+	handlerRTC.month                                    = 6;
+	handlerRTC.year                                     = 23;
+	config_RTC(&handlerRTC);
 	// ---------------------------- CONFIGURACION INICIAL DEL MCO  ----------------------------------------
 	// Seleccionamos la senal HSI
 	RCC -> CFGR &= ~RCC_CFGR_MCO1;
 	RCC -> CFGR &= ~RCC_CFGR_MCO1PRE;
+
+	// ---------------------------- CONFIGURACION DEL PWM  ------------------------------------------------
+	handlerPinPwmChannel1.pGPIOx                                = GPIOB;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinNumber         = PIN_9;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
+	/* Cargamos la configuracion en los registros del MCU */
+	GPIO_Config(&handlerPinPwmChannel1);
+
+
+	/* Configuracion del TIM3 para que genere la signal PWM*/
+	handlerSignalPwm1.ptrTIMx                = TIM4;
+	handlerSignalPwm1.config.channel         = PWM_CHANNEL_4;
+	handlerSignalPwm1.config.duttyCicle      = 5;
+	handlerSignalPwm1.config.periodo         = 10;
+	handlerSignalPwm1.config.prescaler       = 100;
+	/* Cargamos la configuracion en los registros del MCU */
+	pwm_Config(&handlerSignalPwm1);
+	enableOutput(&handlerSignalPwm1);
+	startPwmSignal(&handlerSignalPwm1);
+
+	/* Cargando la configuracion para la conversion ADC */
+	adcConfig1.numberOfChannels   = 2;
+	uint8_t channels[2] 		  = { ADC_CHANNEL_0, ADC_CHANNEL_1 };
+	adcConfig1.channel            = channels;
+	adcConfig1.dataAlignment      = ADC_ALIGNMENT_RIGHT;
+	adcConfig1.resolution         = ADC_RESOLUTION_12_BIT;
+	uint16_t samplingPeriods[2]   = {0};
+	samplingPeriods[0]			  = ADC_SAMPLING_PERIOD_28_CYCLES;
+	samplingPeriods[1]			  = ADC_SAMPLING_PERIOD_28_CYCLES;
+	adcConfig1.samplingPeriod     = samplingPeriods;
+	adcConfig1.externalTrigger    = ADC_EXTERN_TIM_4_CHANNEL_4_RISING;
+	adcConfig1.mode               = MULTIPLE;
+	adc_Config(&adcConfig1);
 
 }
 
@@ -240,8 +296,8 @@ void selectMCOparam(uint16_t param){
 	} else if(param==2){
 		// Seleccionamos la senal LSE
 		RCC -> CFGR &= ~RCC_CFGR_MCO1;
-		RCC -> CFGR &= ~RCC_CFGR_MCO1_0;
-		RCC -> CFGR |= RCC_CFGR_MCO1_1;
+		RCC -> CFGR |= RCC_CFGR_MCO1_0;
+		RCC -> CFGR &= ~RCC_CFGR_MCO1_1;
 	}
 }
 
@@ -286,47 +342,95 @@ void parseCommands(char *ptrBufferReception){
 	if (strcmp(cmd, "help") == 0){
 		writeMsg(&handlerCommTerminal, "Help Menu CMDs: \n");
 		writeMsg(&handlerCommTerminal, "1)  help -> Print this menu \n");
-		writeMsg(&handlerCommTerminal, "2)  mcoparam -> LSE(2), PLL(0), HSI(1) \n");
-		writeMsg(&handlerCommTerminal, "3)  mcopres -> 0,2,3,4,5 \n");
-		writeMsg(&handlerCommTerminal, "4)  RTC \n");
-		writeMsg(&handlerCommTerminal, "5)  RTC \n");
-		writeMsg(&handlerCommTerminal, "6)  RTC \n");
-		writeMsg(&handlerCommTerminal, "7)  RTC \n");
-		writeMsg(&handlerCommTerminal, "8)  Datos analogos: Velocidad de muestreo \n");
-		writeMsg(&handlerCommTerminal, "9)  Datos analogos: Presentacion de los arreglos \n");
-		writeMsg(&handlerCommTerminal, "10) Acelerometro: Captura de datos \n");
-		writeMsg(&handlerCommTerminal, "11) Acelerometro: Frecuencias \n");
+		writeMsg(&handlerCommTerminal, "2)  mcoparam -> Escribir un valor de 0,1 o 2 \n"
+				"A los que corresponden: PLL(0), HSI(1), LSE(2)  \n");
+		writeMsg(&handlerCommTerminal, "3)  mcopres -> Escribir un valor de 0,2,3,4 o 5 \n"
+				"El PLL como minimo debe tener un prescaler de 2 \n");
+		writeMsg(&handlerCommTerminal, "4)  rtcsecon -> El primer parametro es los segundos \n");
+		writeMsg(&handlerCommTerminal, "5)  rtchour -> Configurar la hora\n"
+				"El primer parametro es la hora y el segundo los minutos\n");
+		writeMsg(&handlerCommTerminal, "6)  rtcdate -> El primer parametro es el dia \n"
+				"EL segundo parametro es el mes \n");
+		writeMsg(&handlerCommTerminal, "7)  rtcyear -> El primer parametro \n");
+		writeMsg(&handlerCommTerminal, "8)  adcvel: Velocidad de muestreo \n");
+		writeMsg(&handlerCommTerminal, "9)  adcarray: Presentacion de los arreglos \n");
+		writeMsg(&handlerCommTerminal, "10) acceldata: Captura de datos \n");
+		writeMsg(&handlerCommTerminal, "11) accelfreq: Frecuencias \n");
 
-	}
-	// El comando dummy sirve para entender como funciona la recepcion de numeros
-	//enviados desde la consola
-	else if (strcmp(cmd, "dummy") == 0) {
-		writeMsg(&handlerCommTerminal, "CMD: dummy \n");
-		// Cambiando el formato para presentar el numero por el puerto serial
-		sprintf(bufferData, "number A = %u \n", firstParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
-		sprintf(bufferData, "number B = %u \n", secondParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
-	}
-	// El comando usermsg sirve para entender como funciona la recepcion de strings
-	//enviados desde la consola
-	else if (strcmp(cmd, "usermsg") == 0) {
-		writeMsg(&handlerCommTerminal, "CMD: usermsg \n");
-		writeMsg(&handlerCommTerminal, userMsg);
-		writeMsg(&handlerCommTerminal, "\n");
 	}
 	else if (strcmp(cmd, "mcoparam") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: mcoparam pll(0)-hsi(1)-lse(2) \n");
-		sprintf(bufferData, " = %u \n", firstParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
-		selectMCOparam(firstParameter);
+		if(firstParameter != 0 || firstParameter != 1 ||  firstParameter != 2){
+			sprintf(bufferData, "El parametro a medir es %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+			writeMsg(&handlerCommTerminal, "Este es un numero o caracter no especificado\n"
+					"Solo son validos los numeros 0, 1 o 2 \n");
+		} else {
+			sprintf(bufferData, "Parametro a medir = %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+			selectMCOparam(firstParameter);
+		}
 	}
 	else if (strcmp(cmd, "mcopres") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: mcopres 0-2-3-4-5\n "
 				"Warning!! PLL minimum 2 \n");
+		if(firstParameter != 0 || firstParameter != 2 ||  firstParameter != 3 ||
+				firstParameter != 4 ||  firstParameter != 5 ){
+			sprintf(bufferData, "El prescaler escogido es %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+			writeMsg(&handlerCommTerminal, "Este es un numero o caracter no especificado\n"
+					"Solo son validos los numeros 0, 2, 3, 4 o 5 \n");
+		} else {
+			sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+			selectMCOpresc(firstParameter);
+		}
+	}
+	else if (strcmp(cmd, "rtcsecon") == 0) {
+		writeMsg(&handlerCommTerminal, "");
 		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
 		writeMsg(&handlerCommTerminal, bufferData);
-		selectMCOpresc(firstParameter);
+	}
+	else if (strcmp(cmd, "rtchour") == 0) {
+		handlerRTC.hour                                     = firstParameter;
+		handlerRTC.minutes                                  = secondParameter;
+		config_RTC(&handlerRTC);
+		sprintf(bufferData, "Hora Configurada = %u:%u \n", firstParameter, secondParameter);
+		writeMsg(&handlerCommTerminal, bufferData);
+	}
+	else if (strcmp(cmd, "rtcdate") == 0) {
+		writeMsg(&handlerCommTerminal, "");
+		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+		writeMsg(&handlerCommTerminal, bufferData);
+	}
+	else if (strcmp(cmd, "rtcyear") == 0) {
+		writeMsg(&handlerCommTerminal, "");
+		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+		writeMsg(&handlerCommTerminal, bufferData);
+	}
+	else if (strcmp(cmd, "adcvel") == 0) {
+		writeMsg(&handlerCommTerminal, "");
+		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+		writeMsg(&handlerCommTerminal, bufferData);
+	}
+	else if (strcmp(cmd, "adcarray") == 0) {
+		adcArrayOn =1;
+		writeMsg(&handlerCommTerminal, "ADC\n");
+		while (adcArrayOn){
+			__NOP();
+		}
+		if(adcArrayOn==0){
+			for (int i=0; i<256; i++){
+				sprintf(bufferData, "%u\t%u \n", (unsigned int )datosADC[0][i],(unsigned int )datosADC[1][i]);
+				writeMsg(&handlerCommTerminal, bufferData);
+			}
+		}
+	}
+	else if (strcmp(cmd, "acceldata") == 0) {
+
+	}
+	else if (strcmp(cmd, "accelfreq") == 0) {
+
 	}
 	else {
 		// Se imprime el mensaje "Wrong CMD" si la escritura no corresponde a los CMD implementados
@@ -334,9 +438,29 @@ void parseCommands(char *ptrBufferReception){
 	}
 }
 
+/* Callbacks de las interrupciones */
+void usart6x_Callback(void){
+	rxData = getRxData();
+}
+
 /* Callbacks de los Timers */
 void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerBlinkyPin);
 }
 
+/* Callback del ADC */
+void adcComplete_Callback(void){
+	if (adcArrayOn){
+		datosADC[counterADC][numADC]= getADC();
+		if(numADC==255){
+			adcArrayOn=0;
+			numADC=0;
+		}
+		counterADC++;
+		if(counterADC==2){
+			counterADC=0;
+			numADC++;
+		}
+	}
+}
 

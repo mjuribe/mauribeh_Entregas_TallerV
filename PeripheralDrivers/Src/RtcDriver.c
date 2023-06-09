@@ -1,138 +1,139 @@
-
 #include "RtcDriver.h"
 
-//void config_RTC(RTC_t *pRTC)
-void config_RTC(void){
+void config_RTC(RTC_t *pRTC) {
 
 	// Activamos la señal de reloj para el PWR
-	RCC -> APB1ENR |= RCC_APB1ENR_PWREN;
+	// El PWR le proporciona energia al RTC de manera eficiente
+	RCC->APB1ENR |= RCC_APB1ENR_PWREN;
 
 	// Desactivamos el modo Backup Protection
-	PWR -> CR |= PWR_CR_DBP;
+	PWR->CR |= PWR_CR_DBP;
 
 	// Activamos el LSE (LOW SPEED EXTERNAL 32KHz)
-	RCC -> BDCR |= RCC_BDCR_LSEON;
+	RCC->BDCR |= RCC_BDCR_LSEON;
 
-
-	/* Wait until LSE is ready */
-	while(!(RCC->BDCR & RCC_BDCR_LSERDY)){
-		__NOP() ;
+	/* Esperamos hasta que el LSE este listo  */
+	while (!(RCC->BDCR & RCC_BDCR_LSERDY)) {
+		__NOP();
 	}
 	// Habilitamos la señal proveniente del LSE (LOW SPEED EXTERNAL 32KHz)
-	RCC ->BDCR |= RCC_BDCR_RTCSEL_0;
+	RCC->BDCR &= ~RCC_BDCR_RTCSEL;
+	RCC->BDCR |= RCC_BDCR_RTCSEL_0;
 
-	// Habilitamos la compuerta AND para el RTC
-	RCC -> BDCR |= RCC_BDCR_RTCEN;
+	//  Habilitamos el clock del RTC
+	RCC->BDCR |= RCC_BDCR_RTCEN;
 
 	/* Iniciamos rutina de inicialización */
-
 	// Desactivamos el Write Protection register con la clave
-	RTC -> WPR = 0xCAU;
-	RTC -> WPR = 0x53U;
+	RTC->WPR = 0xCAU;
+	RTC->WPR = 0x53U;
 
-	/* 1.0 Setiamos el bit INIT	en el ISR */
-	RTC -> ISR |= RTC_ISR_INIT;
+	/* Setiamos el bit INIT	en el ISR */
+	RTC->ISR |= RTC_ISR_INIT;
 
-	/* 2.0 Ponemos en 1 el bit de INITF */
-	while((RTC->ISR & RTC_ISR_INITF)==0){
+	/* Ponemos en 1 el bit de INITF */
+	while ((RTC->ISR & RTC_ISR_INITF) == 0) {
 		__NOP();
 	}
 
-	/* 3.0 Configuramos el preescaler */
+	/* Configuramos el preescaler */
+	RTC->PRER |= RTC_PRER_PREDIV_A;
+	RTC->PRER |= (0xFF << RTC_PRER_PREDIV_S_Pos);
 
-	RTC -> PRER |= RTC_PRER_PREDIV_A;
-	RTC -> PRER |= (0xFF << RTC_PRER_PREDIV_S_Pos);
+	// Bypass the shadow registers
+	RTC->CR |= RTC_CR_BYPSHAD;
 
-    RTC->CR |= RTC_CR_BYPSHAD;
-
+	// Limpiamos registros
 	RTC->TR = 0;
 	RTC->DR = 0;
 
-	/* 4.0 Cargamos los valores del calendario (DR - Date Register) y de la hora (TR - Time Register)*/
+	/* Cargamos los valores del calendario (DR - Date Register) y de la hora (TR - Time Register)*/
 
 	// Escogemos el modo de 24 horas
-	RTC -> CR &= ~(RTC_CR_FMT);
-	RTC -> TR &= ~(RTC_TR_PM);
+	RTC->CR &= ~(RTC_CR_FMT);
+	RTC->TR &= ~(RTC_TR_PM);
 
-//	// Escribimos las horas todo funciones
-//	RTC -> TR |= (decToBCD(pRTC->hour)) << RTC_TR_HU_Pos;
-//
-//	// Escribimos los minutos
-//	RTC -> TR |= (decToBCD(pRTC->minutes)) << RTC_TR_MNU_Pos;
-//
-//	// Escribimos el dia
-//	RTC -> DR |= (decToBCD(pRTC->date)) << RTC_DR_DU_Pos;
-//
-//	// Escribimos el mes
-//	RTC -> DR |= (decToBCD(pRTC->month)) << RTC_DR_MU_Pos;
-//
-//	// Escribimos el año
-//	RTC -> DR |= (decToBCD(pRTC->year)) << RTC_DR_YU_Pos;
+	// Escribimos las horas todo funciones
+	RTC->TR |= (decToBCD(pRTC->hour)) << RTC_TR_HU_Pos;
 
-//	// Escribimos el día de la semana
-//	RTC -> DR |= (pRTC->weekDay) << RTC_DR_WDU_Pos;
+	// Escribimos los minutos
+	RTC->TR |= (decToBCD(pRTC->minutes)) << RTC_TR_MNU_Pos;
 
-	RTC -> TR |= (decToBCD(11)) << RTC_TR_HU_Pos;
-	RTC -> TR |= (decToBCD(45)) << RTC_TR_MNU_Pos;
-	RTC -> DR |= (decToBCD(18)) << RTC_DR_DU_Pos;
-	RTC -> DR |= (decToBCD(12)) << RTC_DR_MU_Pos;
-	RTC -> DR |= (decToBCD(01)) << RTC_DR_YU_Pos;
-	RTC -> DR |= (RTC_WEEKDAY_SUNDAY) << RTC_DR_WDU_Pos;
+	// Escribimos el dia
+	RTC->DR |= (decToBCD(pRTC->date)) << RTC_DR_DU_Pos;
 
-	/* 5.0 Salimos del modo de inicialización */
-	RTC -> ISR &= ~RTC_ISR_INIT;
+	// Escribimos el mes
+	RTC->DR |= (decToBCD(pRTC->month)) << RTC_DR_MU_Pos;
 
-	/* 6.0 Activamos nuevamente el Write Protection */
-	RTC -> WPR = 0xFFU;
+	// Escribimos el año
+	RTC->DR |= (decToBCD(pRTC->year)) << RTC_DR_YU_Pos;
+
+	// Escribimos el día de la semana
+	RTC->DR |= (pRTC->weekDay) << RTC_DR_WDU_Pos;
+
+	/* Salimos del modo de inicialización */
+	RTC->ISR &= ~RTC_ISR_INIT;
+
+	/* Activamos nuevamente el Write Protection */
+	RTC->WPR = 0xFFU;
+
+	//RTC->CR &= ~RTC_CR_BYPSHAD;
 
 }
 
 // Función para convertir de numeros decimales a código BCD
-uint8_t decToBCD(int val){
-	uint8_t variable= (uint8_t) ((val/10*16) + (val%10));
+uint8_t decToBCD(int val) {
+	uint8_t variable = (uint8_t) ((val / 10 * 16) + (val % 10));
 	return variable;
 }
 
 // Función para convertir de código BCD a numeros decimales
-
-int BCDToDec(uint8_t val){
-	int variable =(int) ((val/16*10) + (val%16));
+int BCDToDec(uint8_t val) {
+	int variable = (int) ((val / 16 * 10) + (val % 16));
 	return variable;
 }
 
-void setSeconds(int val){
-	// Write the seconds
-	RTC -> TR |= (decToBCD(val)) << RTC_TR_SU_Pos;
+uint8_t time[4] = { 0 };
+uint8_t date[4] = { 0 };
+
+//Función para leer el tiempo
+uint8_t* getTime(void) {
+	uint8_t RTC_Hours = 0;
+	uint8_t RTC_Minutes = 0;
+	uint8_t RTC_Seconds = 0;
+	uint8_t RTC_AmPm = 0;
+
+	RTC_Hours = BCDToDec(((RTC->TR) >> RTC_TR_HU_Pos) & 0x3F); // 3F= 111111
+	RTC_Minutes = BCDToDec(((RTC->TR) >> RTC_TR_MNU_Pos) & 0x7F); // 7F= 1111111
+	RTC_Seconds = BCDToDec((RTC->TR) >> RTC_TR_SU_Pos & 0x7F);
+	RTC_AmPm = ((RTC->TR >> RTC_TR_PM_Pos) & RTC_TR_PM_Msk);
+
+	time[0] = RTC_Hours;
+	time[1] = RTC_Minutes;
+	time[2] = RTC_Seconds;
+	time[3] = RTC_AmPm;
+
+	return time;
 }
 
-void setMinutes(int val){
-	// Write the minutes
-	RTC -> TR |= (decToBCD(val)) << RTC_TR_MNU_Pos;
+uint8_t* getDate(void) {
+//Función para leer la fecha
+
+	uint8_t RTC_Year = 0;
+	uint8_t RTC_Month = 0;
+	uint8_t RTC_Day = 0;
+	uint8_t RTC_Date = 0;
+
+	RTC_Year = BCDToDec(((RTC->DR) >> RTC_DR_YU_Pos) & 0xFF);
+	RTC_Month = BCDToDec(((RTC->DR) >> RTC_DR_MU_Pos) & 0x1F);
+	RTC_Date = BCDToDec((RTC->DR) >> RTC_DR_DU_Pos & 0x3F);
+	RTC_Day = (RTC->DR >> RTC_DR_WDU_Pos) & RTC_DR_WDU_Msk;
+
+	date[0] = RTC_Year;
+	date[1] = RTC_Month;
+	date[2] = RTC_Date;
+	date[3] = RTC_Day;
+
+	return date;
 }
-void setHour(int val){
-	// Write the hour
-	RTC -> TR |= (decToBCD(val)) << RTC_TR_HU_Pos;
-}
-
-void setDay(int val){
-	// Write the day
-	RTC -> DR |= (decToBCD(val)) << RTC_DR_DU_Pos;
-}
-
-void setMonth(int val){
-	// Write the month
-	RTC -> DR |= (decToBCD(val)) << RTC_DR_MU_Pos;
-}
-
-void setYear(int val){
-	// Write the year
-	RTC -> DR |= (decToBCD(val)) << RTC_DR_YU_Pos;
-}
-
-
-
-
-
-
-
 
