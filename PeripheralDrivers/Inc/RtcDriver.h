@@ -8,6 +8,7 @@
 #define RTCDRIVER_H_
 
 #include "stm32f4xx.h"
+#include <stdio.h>
 
 #define RTC_WEEKDAY_MONDAY		0b001
 #define RTC_WEEKDAY_TUESDAY		0b010
@@ -34,8 +35,10 @@ void config_RTC(RTC_t *pRTC);
 uint8_t decToBCD(int val);
 // Función para convertir de BCD a decimal
 int BCDToDec(uint8_t val);
-void* getTime(void);
-void* getDate(void);
+uint8_t* getTime(void);
+uint8_t* getDate(void);
+void printDate(char *bufferDate);
+void printTime(char *bufferTime);
 
 #endif /* RTCDRIVER_H_ */
 

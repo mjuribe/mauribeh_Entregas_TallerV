@@ -43,11 +43,11 @@
 /* Definicion de variables */
 
 /* Elementos para hacer la comunicacion serial */
-GPIO_Handler_t handlerPinTX = {0};
-GPIO_Handler_t handlerPinRX = {0};
+GPIO_Handler_t  handlerPinTX = {0};
+GPIO_Handler_t  handlerPinRX = {0};
 USART_Handler_t handlerCommTerminal = {0};
 
-// Handler del Blinky simple
+// Handler pin del Blinky simple
 GPIO_Handler_t handlerBlinkyPin = {0};
 
 // Handler pin del MCO
@@ -55,6 +55,7 @@ GPIO_Handler_t handlerPinMCO = {0};
 
 /* Handler del RTC */
 RTC_t handlerRTC = {0};
+
 
 /* Handler de los timers */
 BasicTimer_Handler_t handlerBlinkyTimer = {0};
@@ -74,12 +75,12 @@ int16_t AccelZ=0;
 /*Configuracion para el I2C */
 GPIO_Handler_t handlerI2cSDA = {0};
 GPIO_Handler_t handlerI2cSCL = {0};
-I2C_Handler_t handlerAccelerometer = {0};
+I2C_Handler_t  handlerAccelerometer = {0};
 
 /* Handler para las señales por PWM */
 GPIO_Handler_t handlerPinPwmChannel1 = {0};
-PWM_Handler_t handlerSignalPwm1 = {0};
-uint16_t duttyValue1 = 10;
+PWM_Handler_t  handlerSignalPwm1 = {0};
+uint16_t 	   duttyValue1 = 10;
 
 /* Contadores y banderas */
 uint8_t  rxData = 0;
@@ -94,7 +95,6 @@ uint8_t  adcArrayOn =0;
 
 /* Configuracion ADC */
 ADC_Config_t adcConfig1 = {0};
-uint16_t adcDataSingle;
 uint8_t stringComplete = 0;
 
 /* Arreglos */
@@ -107,8 +107,11 @@ float datosAccel[3][2000];
 char bufferReception[64];
 char userMsg[64];
 char cmd[64];
+char bufferDate[64];
+char bufferTime[64];
 unsigned int firstParameter =0;
 unsigned int secondParameter =0;
+unsigned int thirdParameter =0;
 
 // Definicion de las cabeceras de las funciones
 void initSystem(void);
@@ -162,15 +165,13 @@ int main (void){
 
 void initSystem(void){
 
-
+	// Se apaga el reloj HSE para utilizar el pin H1
 	RCC->CR &= ~(RCC_CR_HSEON);
-	RCC->CR &= ~(RCC_CR_HSEBYP);
-	RCC->CR &= ~(RCC_CR_HSERDY);
 
 	// ----------------------------BLINKY SIMPLE ----------------------------------------
-	/* Configuracion del LED - PH0 - Blinky Simple */
-	handlerBlinkyPin.pGPIOx                             = GPIOA;
-	handlerBlinkyPin.GPIO_PinConfig.GPIO_PinNumber      = PIN_5;
+	/* Configuracion del LED - PH1 - Blinky Simple */
+	handlerBlinkyPin.pGPIOx                             = GPIOH;
+	handlerBlinkyPin.GPIO_PinConfig.GPIO_PinNumber      = PIN_1;
 	handlerBlinkyPin.GPIO_PinConfig.GPIO_PinMode        = GPIO_MODE_OUT;
 	handlerBlinkyPin.GPIO_PinConfig.GPIO_PinOPType      = GPIO_OTYPE_PUSHPULL;
 	handlerBlinkyPin.GPIO_PinConfig.GPIO_PinSpeed       = GPIO_OSPEED_FAST;
@@ -224,7 +225,6 @@ void initSystem(void){
 	handlerCommTerminal.USART_Config.USART_mode         = USART_MODE_RXTX;
 	handlerCommTerminal.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE;
 	handlerCommTerminal.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
-
 	USART_Config(&handlerCommTerminal);
 
 	handlerRTC.seconds                                  = 12;
@@ -235,6 +235,7 @@ void initSystem(void){
 	handlerRTC.month                                    = 6;
 	handlerRTC.year                                     = 23;
 	config_RTC(&handlerRTC);
+
 	// ---------------------------- CONFIGURACION INICIAL DEL MCO  ----------------------------------------
 	// Seleccionamos la senal HSI
 	RCC -> CFGR &= ~RCC_CFGR_MCO1;
@@ -252,7 +253,7 @@ void initSystem(void){
 	GPIO_Config(&handlerPinPwmChannel1);
 
 
-	/* Configuracion del TIM3 para que genere la signal PWM*/
+	/* Configuracion del TIM4 para que genere la signal PWM*/
 	handlerSignalPwm1.ptrTIMx                = TIM4;
 	handlerSignalPwm1.config.channel         = PWM_CHANNEL_4;
 	handlerSignalPwm1.config.duttyCicle      = 5;
@@ -285,7 +286,7 @@ void usart6Rx_Callback(void){
 }
 
 void selectMCOparam(uint16_t param){
-	if(param==0){
+	if (param==0){
 		// Seleccionamos la senal PLL
 		RCC -> CFGR &= ~RCC_CFGR_MCO1;
 		RCC -> CFGR |= RCC_CFGR_MCO1_0;
@@ -297,7 +298,6 @@ void selectMCOparam(uint16_t param){
 		// Seleccionamos la senal LSE
 		RCC -> CFGR &= ~RCC_CFGR_MCO1;
 		RCC -> CFGR |= RCC_CFGR_MCO1_0;
-		RCC -> CFGR &= ~RCC_CFGR_MCO1_1;
 	}
 }
 
@@ -338,24 +338,43 @@ void parseCommands(char *ptrBufferReception){
 	 * y dos integer llamados "firstParameter" y "secondParameter"
 	 * De esta forma podemos introducir informacion al micro desde el puerto
 	 */
-	sscanf(ptrBufferReception, "%s %u %u %s", cmd, &firstParameter, &secondParameter, userMsg);
+	sscanf(ptrBufferReception, "%s %u %u %u %s", cmd, &firstParameter, &secondParameter, &thirdParameter, userMsg);
 	if (strcmp(cmd, "help") == 0){
 		writeMsg(&handlerCommTerminal, "Help Menu CMDs: \n");
-		writeMsg(&handlerCommTerminal, "1)  help -> Print this menu \n");
-		writeMsg(&handlerCommTerminal, "2)  mcoparam -> Escribir un valor de 0,1 o 2 \n"
-				"A los que corresponden: PLL(0), HSI(1), LSE(2)  \n");
-		writeMsg(&handlerCommTerminal, "3)  mcopres -> Escribir un valor de 0,2,3,4 o 5 \n"
-				"El PLL como minimo debe tener un prescaler de 2 \n");
-		writeMsg(&handlerCommTerminal, "4)  rtcsecon -> El primer parametro es los segundos \n");
-		writeMsg(&handlerCommTerminal, "5)  rtchour -> Configurar la hora\n"
-				"El primer parametro es la hora y el segundo los minutos\n");
-		writeMsg(&handlerCommTerminal, "6)  rtcdate -> El primer parametro es el dia \n"
-				"EL segundo parametro es el mes \n");
-		writeMsg(&handlerCommTerminal, "7)  rtcyear -> El primer parametro \n");
-		writeMsg(&handlerCommTerminal, "8)  adcvel: Velocidad de muestreo \n");
-		writeMsg(&handlerCommTerminal, "9)  adcarray: Presentacion de los arreglos \n");
-		writeMsg(&handlerCommTerminal, "10) acceldata: Captura de datos \n");
-		writeMsg(&handlerCommTerminal, "11) accelfreq: Frecuencias \n");
+		writeMsg(&handlerCommTerminal, "1)  help     --> Print this menu \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "2)  hsitrim  --> Configurar la sintonizacion \n");
+		writeMsg(&handlerCommTerminal, "		Un unico parametro positivo o negativo\n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "3)  mcoparam --> Escribir un unico valor entre 0,1 o 2 \n");
+		writeMsg(&handlerCommTerminal, "A los que corresponden: PLL(0), HSI(1), LSE(2)  \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "4)  mcopres  --> Escribir un unico valor entre 0,2,3,4 o 5 \n");
+		writeMsg(&handlerCommTerminal, "    Warning !!! \n");
+		writeMsg(&handlerCommTerminal, "    El PLL como minimo debe tener un prescaler de 2 para poder visualizarlo en el osciloscopio \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "5)  rtcdate --> Configurar la fecha #1 #2 #3 \n");
+		writeMsg(&handlerCommTerminal, "    El primer parametro es el dia \n");
+		writeMsg(&handlerCommTerminal, "    El segundo parametro es el mes \n");
+		writeMsg(&handlerCommTerminal, "    El tercer parametro es el año \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "6)  rtctime  --> Configurar la hora  #1 #2 #3 \n");
+		writeMsg(&handlerCommTerminal, "    El primer parametro es la hora \n");
+		writeMsg(&handlerCommTerminal, "    El segundo parametro son los minutos \n");
+		writeMsg(&handlerCommTerminal, "    El tercer parametro son los segundos \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "7)  actualdate --> Fecha configurada\n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "8)  actualtime --> Hora configurada \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "9)  adcvel     --> Velocidad de muestreo \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "10)  adcarray  --> Presentacion de los arreglos de dos señales ADC \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "11) acceldata  --> Captura de datos \n");
+		writeMsg(&handlerCommTerminal, "\n");
+		writeMsg(&handlerCommTerminal, "12) accelfreq  --> Frecuencias \n");
+		writeMsg(&handlerCommTerminal, "\n");
 
 	}
 	else if (strcmp(cmd, "mcoparam") == 0) {
@@ -386,36 +405,44 @@ void parseCommands(char *ptrBufferReception){
 			selectMCOpresc(firstParameter);
 		}
 	}
-	else if (strcmp(cmd, "rtcsecon") == 0) {
-		writeMsg(&handlerCommTerminal, "");
-		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+	else if (strcmp(cmd, "rtcdate") == 0) {
+		writeMsg(&handlerCommTerminal, "CMD: rtcdate = #Dia #Mes #Año\n");
+		handlerRTC.date                                   = firstParameter;
+		handlerRTC.month                                  = secondParameter;
+		handlerRTC.year                                   = thirdParameter;
+		config_RTC(&handlerRTC);
+		sprintf(bufferData, "Fecha Configurada = %.2u/%.2u/%.2u \n", firstParameter, secondParameter, thirdParameter);
 		writeMsg(&handlerCommTerminal, bufferData);
 	}
-	else if (strcmp(cmd, "rtchour") == 0) {
+	else if (strcmp(cmd, "rtctime") == 0) {
 		handlerRTC.hour                                     = firstParameter;
 		handlerRTC.minutes                                  = secondParameter;
+		handlerRTC.seconds                                  = thirdParameter;
 		config_RTC(&handlerRTC);
-		sprintf(bufferData, "Hora Configurada = %u:%u \n", firstParameter, secondParameter);
+		sprintf(bufferData, "Hora Configurada = %.2u:%.2u:%.2u \n", firstParameter, secondParameter, thirdParameter);
 		writeMsg(&handlerCommTerminal, bufferData);
 	}
-	else if (strcmp(cmd, "rtcdate") == 0) {
-		writeMsg(&handlerCommTerminal, "");
-		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
+	else if (strcmp(cmd, "actualdate") == 0) {
+		writeMsg(&handlerCommTerminal, "CMD: actualdate = Fecha configurada");
+		printDate(bufferTime);
+		writeMsg(&handlerCommTerminal, bufferTime);
 	}
-	else if (strcmp(cmd, "rtcyear") == 0) {
-		writeMsg(&handlerCommTerminal, "");
-		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
+	else if (strcmp(cmd, "actualtime") == 0) {
+		writeMsg(&handlerCommTerminal, "CMD: actualhour = Hora configurada");
+		printTime(bufferTime);
+		writeMsg(&handlerCommTerminal, bufferTime);
 	}
 	else if (strcmp(cmd, "adcvel") == 0) {
-		writeMsg(&handlerCommTerminal, "");
-		sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+		writeMsg(&handlerCommTerminal, "CMD: adcvel #Periodo");
+		sprintf(bufferData, "Periodo de la señal PWM = %u \n", firstParameter);
 		writeMsg(&handlerCommTerminal, bufferData);
+		handlerSignalPwm1.config.periodo         = firstParameter;
+		pwm_Config(&handlerSignalPwm1);
+
 	}
 	else if (strcmp(cmd, "adcarray") == 0) {
 		adcArrayOn =1;
-		writeMsg(&handlerCommTerminal, "ADC\n");
+		writeMsg(&handlerCommTerminal, "CMD: adcarray = Arreglos con datos de dos señales ADC \n");
 		while (adcArrayOn){
 			__NOP();
 		}
@@ -427,9 +454,11 @@ void parseCommands(char *ptrBufferReception){
 		}
 	}
 	else if (strcmp(cmd, "acceldata") == 0) {
+		writeMsg(&handlerCommTerminal, "CMD: acceldata = Toma de datos del acelerometro \n");
 
 	}
 	else if (strcmp(cmd, "accelfreq") == 0) {
+		writeMsg(&handlerCommTerminal, "CMD: accelfreq = Frecuencia hallada por FFT \n ");
 
 	}
 	else {
@@ -450,8 +479,9 @@ void BasicTimer2_Callback(void){
 
 /* Callback del ADC */
 void adcComplete_Callback(void){
+	adcData[counterADC]=getADC();
 	if (adcArrayOn){
-		datosADC[counterADC][numADC]= getADC();
+		datosADC[counterADC][numADC]= adcData[counterADC];
 		if(numADC==255){
 			adcArrayOn=0;
 			numADC=0;

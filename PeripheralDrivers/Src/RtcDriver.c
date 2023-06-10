@@ -96,7 +96,7 @@ int BCDToDec(uint8_t val) {
 uint8_t time[4] = { 0 };
 uint8_t date[4] = { 0 };
 
-//Función para leer el tiempo
+////Función para leer el tiempo
 uint8_t* getTime(void) {
 	uint8_t RTC_Hours = 0;
 	uint8_t RTC_Minutes = 0;
@@ -129,11 +129,31 @@ uint8_t* getDate(void) {
 	RTC_Date = BCDToDec((RTC->DR) >> RTC_DR_DU_Pos & 0x3F);
 	RTC_Day = (RTC->DR >> RTC_DR_WDU_Pos) & RTC_DR_WDU_Msk;
 
-	date[0] = RTC_Year;
+	date[0] = RTC_Date;
 	date[1] = RTC_Month;
-	date[2] = RTC_Date;
+	date[2] = RTC_Year;
 	date[3] = RTC_Day;
 
 	return date;
 }
+/* Arreglos fecha y hora RTC */
+uint8_t fecha[4];
+uint8_t hora[4];
 
+void printDate(char *bufferDate){
+	getDate();
+	fecha[0]=date[0];
+	fecha[1]=date[1];
+	fecha[2]=date[2];
+	fecha[4]=date[4];
+	sprintf(bufferDate, " %.2u/%.2u/%.2u\n", fecha[0], fecha[1],fecha[2]);
+}
+
+void printTime(char *bufferTime){
+	getTime();
+	hora[0]=time[0];
+	hora[1]=time[1];
+	hora[2]=time[2];
+	hora[4]=time[4];
+	sprintf(bufferTime, " %.2u:%.2u:%.2u\n", hora[0], hora[1],hora[2]);
+}
