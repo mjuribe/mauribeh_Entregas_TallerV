@@ -109,9 +109,9 @@ char userMsg[64];
 char cmd[64];
 char bufferDate[64];
 char bufferTime[64];
-unsigned int firstParameter =0;
-unsigned int secondParameter =0;
-unsigned int thirdParameter =0;
+unsigned int firstParameter  =10000;
+unsigned int secondParameter =10000;
+unsigned int thirdParameter  =10000;
 
 // Definicion de las cabeceras de las funciones
 void initSystem(void);
@@ -119,6 +119,7 @@ void guardarDato(void);
 void parseCommands(char *ptrBufferReception);
 void selectMCOparam(uint16_t param);
 void selectMCOpresc(uint16_t prescaler);
+void limpiarParam(void);
 
 int main (void){
 	// Activamos el coprocesador matematico FPU
@@ -302,7 +303,7 @@ void selectMCOparam(uint16_t param){
 }
 
 void selectMCOpresc(uint16_t prescaler){
-	if (prescaler ==0){
+	if (prescaler ==1){
 		RCC -> CFGR &= ~RCC_CFGR_MCO1PRE;
 	}
 	if(prescaler ==2){
@@ -335,7 +336,7 @@ void parseCommands(char *ptrBufferReception){
 
 	/* Lee la cadena de caracteres a la que apunta el "ptrBufferReception
 	 * y almacena en tres elementos diferentes: un string llamado "cmd",
-	 * y dos integer llamados "firstParameter" y "secondParameter"
+	 * y tres integer llamados "firstParameter", "secondParameter" y "thirdParameter"
 	 * De esta forma podemos introducir informacion al micro desde el puerto
 	 */
 	sscanf(ptrBufferReception, "%s %u %u %u %s", cmd, &firstParameter, &secondParameter, &thirdParameter, userMsg);
@@ -344,7 +345,8 @@ void parseCommands(char *ptrBufferReception){
 		writeMsg(&handlerCommTerminal, "1)  help     --> Print this menu \n");
 		writeMsg(&handlerCommTerminal, "\n");
 		writeMsg(&handlerCommTerminal, "2)  hsitrim  --> Configurar la sintonizacion \n");
-		writeMsg(&handlerCommTerminal, "		Un unico parametro positivo o negativo\n");
+		writeMsg(&handlerCommTerminal, "		Un unico parametro entre 0 y 32 \n");
+		writeMsg(&handlerCommTerminal, "		Parametro por defecto = 16 \n");
 		writeMsg(&handlerCommTerminal, "\n");
 		writeMsg(&handlerCommTerminal, "3)  mcoparam --> Escribir un unico valor entre 0,1 o 2 \n");
 		writeMsg(&handlerCommTerminal, "A los que corresponden: PLL(0), HSI(1), LSE(2)  \n");
@@ -375,52 +377,79 @@ void parseCommands(char *ptrBufferReception){
 		writeMsg(&handlerCommTerminal, "\n");
 		writeMsg(&handlerCommTerminal, "12) accelfreq  --> Frecuencias \n");
 		writeMsg(&handlerCommTerminal, "\n");
-
+		writeMsg(&handlerCommTerminal, "LOS VALORES POR DEFECTO DE LOS TRES NUMEROS ES 10000 \n");
+		writeMsg(&handlerCommTerminal, "Si se desea hacer una actualizacion se debe escribir explicitamente el numero que se desea \n");
+	}
+	else if (strcmp(cmd, "hsitrim") == 0) {
+		writeMsg(&handlerCommTerminal, "CMD: hsitrim \n");
+		if(firstParameter > 0 && firstParameter < 32){
+			RCC->CR &= ~(RCC_CR_HSITRIM_Msk);
+			RCC->CR |= (firstParameter<<RCC_CR_HSITRIM_Pos);
+			sprintf(bufferData, "Sintonizado a: %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+		} else {
+			writeMsg(&handlerCommTerminal, "Valor a sintonizar no valido \n");
+		}
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "mcoparam") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: mcoparam pll(0)-hsi(1)-lse(2) \n");
-		if(firstParameter != 0 || firstParameter != 1 ||  firstParameter != 2){
+		if(firstParameter == 0 || firstParameter == 1 ||  firstParameter == 2){
+			sprintf(bufferData, "Parametro a medir = %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+			selectMCOparam(firstParameter);
+		} else {
 			sprintf(bufferData, "El parametro a medir es %u \n", firstParameter);
 			writeMsg(&handlerCommTerminal, bufferData);
 			writeMsg(&handlerCommTerminal, "Este es un numero o caracter no especificado\n"
 					"Solo son validos los numeros 0, 1 o 2 \n");
-		} else {
-			sprintf(bufferData, "Parametro a medir = %u \n", firstParameter);
-			writeMsg(&handlerCommTerminal, bufferData);
-			selectMCOparam(firstParameter);
 		}
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "mcopres") == 0) {
-		writeMsg(&handlerCommTerminal, "CMD: mcopres 0-2-3-4-5\n "
+		writeMsg(&handlerCommTerminal, "CMD: mcopres 1-2-3-4-5\n "
 				"Warning!! PLL minimum 2 \n");
-		if(firstParameter != 0 || firstParameter != 2 ||  firstParameter != 3 ||
-				firstParameter != 4 ||  firstParameter != 5 ){
+		if(firstParameter == 1 || firstParameter == 2 ||  firstParameter == 3 ||
+				firstParameter == 4 ||  firstParameter == 5 ){
+			sprintf(bufferData, "Prescaler = %u \n", firstParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+			selectMCOpresc(firstParameter);
+		} else {
 			sprintf(bufferData, "El prescaler escogido es %u \n", firstParameter);
 			writeMsg(&handlerCommTerminal, bufferData);
 			writeMsg(&handlerCommTerminal, "Este es un numero o caracter no especificado\n"
 					"Solo son validos los numeros 0, 2, 3, 4 o 5 \n");
-		} else {
-			sprintf(bufferData, "Prescaler = %u \n", firstParameter);
-			writeMsg(&handlerCommTerminal, bufferData);
-			selectMCOpresc(firstParameter);
 		}
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "rtcdate") == 0) {
-		writeMsg(&handlerCommTerminal, "CMD: rtcdate = #Dia #Mes #Año\n");
-		handlerRTC.date                                   = firstParameter;
-		handlerRTC.month                                  = secondParameter;
-		handlerRTC.year                                   = thirdParameter;
-		config_RTC(&handlerRTC);
-		sprintf(bufferData, "Fecha Configurada = %.2u/%.2u/%.2u \n", firstParameter, secondParameter, thirdParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
+		if(firstParameter > 0 && firstParameter < 32 && secondParameter > 0
+				&& secondParameter < 13 && thirdParameter >=0 && thirdParameter < 100){
+			writeMsg(&handlerCommTerminal, "CMD: rtcdate = #Dia #Mes #Año\n");
+			handlerRTC.date                                   = firstParameter;
+			handlerRTC.month                                  = secondParameter;
+			handlerRTC.year                                   = thirdParameter;
+			config_RTC(&handlerRTC);
+			sprintf(bufferData, "Fecha Configurada = %.2u/%.2u/%.2u \n", firstParameter, secondParameter, thirdParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+		}else{
+			writeMsg(&handlerCommTerminal, "Fecha no valida\n");
+		}
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "rtctime") == 0) {
-		handlerRTC.hour                                     = firstParameter;
-		handlerRTC.minutes                                  = secondParameter;
-		handlerRTC.seconds                                  = thirdParameter;
-		config_RTC(&handlerRTC);
-		sprintf(bufferData, "Hora Configurada = %.2u:%.2u:%.2u \n", firstParameter, secondParameter, thirdParameter);
-		writeMsg(&handlerCommTerminal, bufferData);
+		if(firstParameter >=0 && firstParameter < 24 && secondParameter >= 0
+				&& secondParameter < 60 && thirdParameter >=0 && thirdParameter < 60){
+			handlerRTC.hour                                     = firstParameter;
+			handlerRTC.minutes                                  = secondParameter;
+			handlerRTC.seconds                                  = thirdParameter;
+			config_RTC(&handlerRTC);
+			sprintf(bufferData, "Hora Configurada = %.2u:%.2u:%.2u \n", firstParameter, secondParameter, thirdParameter);
+			writeMsg(&handlerCommTerminal, bufferData);
+		} else {
+			writeMsg(&handlerCommTerminal, "Hora no valida\n");
+		}
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "actualdate") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: actualdate = Fecha configurada");
@@ -438,7 +467,7 @@ void parseCommands(char *ptrBufferReception){
 		writeMsg(&handlerCommTerminal, bufferData);
 		handlerSignalPwm1.config.periodo         = firstParameter;
 		pwm_Config(&handlerSignalPwm1);
-
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "adcarray") == 0) {
 		adcArrayOn =1;
@@ -452,18 +481,20 @@ void parseCommands(char *ptrBufferReception){
 				writeMsg(&handlerCommTerminal, bufferData);
 			}
 		}
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "acceldata") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: acceldata = Toma de datos del acelerometro \n");
-
+		limpiarParam();
 	}
 	else if (strcmp(cmd, "accelfreq") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: accelfreq = Frecuencia hallada por FFT \n ");
-
+		limpiarParam();
 	}
 	else {
 		// Se imprime el mensaje "Wrong CMD" si la escritura no corresponde a los CMD implementados
 		writeMsg(&handlerCommTerminal, "Wrong CMD \n");
+		limpiarParam();
 	}
 }
 
@@ -492,5 +523,11 @@ void adcComplete_Callback(void){
 			numADC++;
 		}
 	}
+}
+
+void limpiarParam(void){
+	firstParameter=10000;
+	secondParameter=10000;
+	secondParameter=10000;
 }
 
