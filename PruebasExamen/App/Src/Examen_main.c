@@ -343,15 +343,15 @@ void initSystem(void) {
 	RCC->CFGR &= ~RCC_CFGR_MCO1PRE;
 
 	// ---------------------------- CONFIGURACION DEL PWM  ------------------------------------------------
-//	handlerPinPwmChannel1.pGPIOx                                = GPIOB;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinNumber         = PIN_9;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
-//	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
-//	/* Cargamos la configuracion en los registros del MCU */
-//	GPIO_Config(&handlerPinPwmChannel1);
+	handlerPinPwmChannel1.pGPIOx                                = GPIOD;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinNumber         = PIN_15;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinMode           = GPIO_MODE_ALTFN;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinOPType         = GPIO_OTYPE_PUSHPULL;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinSpeed          = GPIO_OSPEED_FAST;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinPuPdControl    = GPIO_PUPDR_NOTHING;
+	handlerPinPwmChannel1.GPIO_PinConfig.GPIO_PinAltFunMode     = AF2;
+	/* Cargamos la configuracion en los registros del MCU */
+	GPIO_Config(&handlerPinPwmChannel1);
 
 	/* Configuracion del TIM4 para que genere la signal PWM*/
 	handlerSignalPwm1.ptrTIMx                = TIM4;
@@ -584,8 +584,7 @@ void parseCommands(char *ptrBufferReception) {
 		limpiarParam();
 	} else if (strcmp(cmd, "adcarray") == 0) {
 		adcArrayOn = 1;
-		writeMsg(&handlerCommTerminal,
-				"CMD: adcarray = Arreglos con datos de dos señales ADC \n");
+		writeMsg(&handlerCommTerminal, "CMD: adcarray = Arreglos con datos de dos señales ADC \n");
 		while (adcArrayOn) {
 			__NOP();
 		}
@@ -598,13 +597,11 @@ void parseCommands(char *ptrBufferReception) {
 		}
 		limpiarParam();
 	} else if (strcmp(cmd, "acceldata") == 0) {
-		writeMsg(&handlerCommTerminal,
-				"CMD: acceldata = Toma de datos del acelerometro \n");
+		writeMsg(&handlerCommTerminal, "CMD: acceldata = Toma de datos del acelerometro \n");
 		banderaComm = 1;
 		limpiarParam();
 	} else if (strcmp(cmd, "accelfreq") == 0) {
-		writeMsg(&handlerCommTerminal,
-				"CMD: accelfreq = Frecuencia hallada por FFT \n ");
+		writeMsg(&handlerCommTerminal, "CMD: accelfreq = Frecuencia hallada por FFT \n ");
 		stopTime = 0.0;
 
 		int j = 0;
@@ -630,15 +627,12 @@ void parseCommands(char *ptrBufferReception) {
 				}
 			}
 
-//			sprintf(bufferData, "index %d ; result %f\n,", (int)indexMax, FTT_Max);
-//			writeMsg(&usart1Handler, bufferData);
-
-			float w = (indexMax / (0.005 * (fttSize)));
+			float w = (indexMax / (0.005 * (fttSize/2)));
 			sprintf(bufferData, "frecuency w %f Hz \n,", w);
 			writeMsg(&handlerCommTerminal, bufferData);
 
 		} else {
-			writeMsg(&handlerCommTerminal, "FFT not initialized...");
+			writeMsg(&handlerCommTerminal, "FFT no se inicializo");
 		}
 		limpiarParam();
 	} else {
