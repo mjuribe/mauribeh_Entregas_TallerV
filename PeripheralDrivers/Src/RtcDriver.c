@@ -77,7 +77,7 @@ void config_RTC(RTC_t *pRTC) {
 	/* Activamos nuevamente el Write Protection */
 	RTC->WPR = 0xFFU;
 
-	//RTC->CR &= ~RTC_CR_BYPSHAD;
+	RTC->CR &= ~RTC_CR_BYPSHAD;
 
 }
 
@@ -145,8 +145,8 @@ void printDate(char *bufferDate){
 	fecha[0]=date[0];
 	fecha[1]=date[1];
 	fecha[2]=date[2];
-	fecha[4]=date[4];
-	sprintf(bufferDate, " %.2u/%.2u/%.2u\n", fecha[0], fecha[1],fecha[2]);
+	fecha[3]=date[3];
+	sprintf(bufferDate, " %.2u/%.2u/%.2u ", fecha[0], fecha[1],fecha[2] );
 }
 
 void printTime(char *bufferTime){
