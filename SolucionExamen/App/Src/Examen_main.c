@@ -170,10 +170,6 @@ int main(void) {
 			AccelZ_low = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_L);
 			AccelZ_high = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_ZOUT_H);
 			AccelZ = AccelZ_high << 8 | AccelZ_low;
-//			i2c_readMultipleRegisters(&handlerAccelerometer, ACCEL_XOUT_L, 6, registroDatos);
-//			AccelX = registroDatos[1]  << 8 | registroDatos[0];
-//			AccelY = registroDatos[3]  << 8 | registroDatos[2] ;
-//			AccelZ = registroDatos[5]  << 8 | registroDatos[4] ;
 
 			if (banderaComm) {
 				datosAccel[0][counterAccel] = AccelX;
