@@ -333,6 +333,15 @@ void apagado(void){
 	escribirCero();
 	escribirCero();
 	escribirCero();
+	escribirUno();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirUno();
 	escribirCero();
 	escribirCero();
 	escribirCero();
@@ -341,6 +350,52 @@ void apagado(void){
 	escribirCero();
 	escribirCero();
 	escribirCero();
+}
+
+void blanco(void){
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+}
+
+void naranja(void){
+	escribirCero();
+	escribirUno();
+	escribirCero();
+	escribirCero();
+	escribirCero();
+	escribirUno();
+	escribirCero();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
+	escribirUno();
 	escribirCero();
 	escribirCero();
 	escribirCero();
@@ -349,5 +404,5 @@ void apagado(void){
 	escribirCero();
 	escribirCero();
 	escribirCero();
-	escribirCero();
+
 }

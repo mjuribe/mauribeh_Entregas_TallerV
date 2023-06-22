@@ -57,6 +57,7 @@ uint8_t stringComplete = 0;
 uint8_t rxData = 0;
 uint16_t counterReception = 0;
 uint8_t parametro=0;
+uint8_t colorled=0;
 
 /* Configuracion de comandos por terminal serial*/
 char bufferData[64] = "Inicio";
@@ -170,12 +171,14 @@ void initSystem(void) {
 
 	// ---------------------------- CONFIGURACION INICIAL DEL RTC ----------------------------------------
 	handlerRTC.seconds                                  = 50;
-	handlerRTC.minutes                                  = 34;
+	handlerRTC.minutes                                  = 40;
 	handlerRTC.hour                                     = 6;
 	handlerRTC.weekDay                                  = RTC_WEEKDAY_WEDNESDAY;
 	handlerRTC.date                                     = 7;
 	handlerRTC.month                                    = 6;
 	handlerRTC.year                                     = 23;
+	handlerRTC.am_pm    								= PM;
+	handlerRTC.format									= FORMAT_12H;
 	config_RTC(&handlerRTC);
 
 	// ---------------------------- CONFIGURACION DE LA COMUNICACION SERIAL  ----------------------------------------
@@ -260,9 +263,13 @@ void usart2Rx_Callback(void) {
 
 void BasicTimer3_Callback(void) {
 	tim++;
-	if(tim==15){
+	if(tim==3){
 		tomadedatos=1;
 		tim=0;
+		colorled++;
+	}
+	if(colorled==6){
+		colorled=0;
 	}
 }
 
@@ -272,88 +279,88 @@ void minutero(void){
 	hour[1]=reloj[1];
 	hour[2]=reloj[2];
 	if(hour[1]<5){
-		itis();
+		itis(colorled);
 		delay_ms(4);
 	}else if(hour[1]>=5 && hour[1]<10){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		fivemin();
+		fivemin(colorled);
 		delay_ms(4);
-		past();
+		past(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=10 && hour[1]<15){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		tenmin();
+		tenmin(colorled);
 		delay_ms(4);
-		past();
+		past(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=15 && hour[1]<20){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		quarter();
+		quarter(colorled);
 		delay_ms(4);
-		past();
+		past(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=20 && hour[1]<25){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		twentymin();
+		twentymin(colorled);
 		delay_ms(4);
-		past();
+		past(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=25 && hour[1]<30){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		twentymin();
+		twentymin(colorled);
 		delay_ms(4);
-		fivemin();
+		fivemin(colorled);
 		delay_ms(4);
-		past();
+		past(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=30 && hour[1]<35){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		half();
+		half(colorled);
 		delay_ms(4);
-		past();
+		past(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=35 && hour[1]<40){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		twentymin();
+		twentymin(colorled);
 		delay_ms(4);
-		fivemin();
+		fivemin(colorled);
 		delay_ms(4);
-		to();
+		to(colorled);
 		delay_ms(4);
 	} else if(hour[1]>=40 && hour[1]<45){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		twentymin();
+		twentymin(colorled);
 		delay_ms(4);
-		to();
+		to(colorled);
 		delay_ms(4);
     } else if(hour[1]>=45 && hour[1]<50){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		quarter();
+		quarter(colorled);
 		delay_ms(4);
-		to();
+		to(colorled);
 		delay_ms(4);
 	}else if(hour[1]>=50 && hour[1]<55){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		tenmin();
+		tenmin(colorled);
 		delay_ms(4);
-		to();
+		to(colorled);
 		delay_ms(4);
 	}else if(hour[1]>=55 && hour[1]<=59){
-		itis();
+		itis(colorled);
 		delay_ms(4);
-		fivemin();
+		fivemin(colorled);
 		delay_ms(4);
-		to();
+		to(colorled);
 		delay_ms(4);
 	}
 	if(hour[1]<35){
@@ -369,45 +376,45 @@ void minutero(void){
 void manecillahora(uint16_t horaconf){
 	switch (horaconf){
 	case 1:
-		one();
+		one(colorled);
 		break;
 	case 2:
-		two();
+		two(colorled);
 		break;
 	case 3:
-		three();
+		three(colorled);
 		break;
 	case 4:
-		four();
+		four(colorled);
 		break;
 	case 5:
-		five();
+		five(colorled);
 		break;
 	case 6:
-		six();
+		six(colorled);
 		break;
 	case 7:
-		seven();
+		seven(colorled);
 		break;
 	case 8:
-		eight();
+		eight(colorled);
 		break;
 	case 9:
-		nine();
+		nine(colorled);
 		break;
 	case 10:
-		ten(2);
+		ten(colorled);
 		break;
 	case 11:
-		eleven();
+		eleven(colorled);
 		break;
 	case 12:
-		twelve();
+		twelve(colorled);
 		break;
 	}
 	delay_ms(4);
 	if(hour[1]<5){
-		oclock(2);
+		oclock(colorled);
 	}
 
 }

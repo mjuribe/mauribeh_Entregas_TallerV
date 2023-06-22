@@ -18,6 +18,12 @@
 #define RTC_WEEKDAY_SATURDAY	0b110
 #define RTC_WEEKDAY_SUNDAY		0b111
 
+#define FORMAT_24H 	0
+#define FORMAT_12H 	1
+
+#define AM				0
+#define PM				1
+#define NA				2
 
 typedef struct{
 	uint8_t seconds;
@@ -27,6 +33,8 @@ typedef struct{
 	uint8_t date;
 	uint8_t month;
 	uint8_t year;
+	uint8_t format;
+	uint8_t	am_pm;
 }RTC_t;
 
 // Función de configuración del RTC

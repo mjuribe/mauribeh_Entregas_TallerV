@@ -53,12 +53,6 @@ void config_RTC(RTC_t *pRTC) {
 	RTC->CR &= ~(RTC_CR_FMT);
 	RTC->TR &= ~(RTC_TR_PM);
 
-	// Escribimos las horas todo funciones
-	RTC->TR |= (decToBCD(pRTC->hour)) << RTC_TR_HU_Pos;
-
-	// Escribimos los minutos
-	RTC->TR |= (decToBCD(pRTC->minutes)) << RTC_TR_MNU_Pos;
-
 	// Escribimos el dia
 	RTC->DR |= (decToBCD(pRTC->date)) << RTC_DR_DU_Pos;
 
@@ -70,6 +64,31 @@ void config_RTC(RTC_t *pRTC) {
 
 	// Escribimos el día de la semana
 	RTC->DR |= (pRTC->weekDay) << RTC_DR_WDU_Pos;
+
+	// Ponemos formato de la hora
+	if(pRTC->format == FORMAT_24H){
+		RTC->CR &= ~RTC_CR_FMT;
+	}
+	else if(pRTC->format == FORMAT_12H){
+		RTC->CR |= RTC_CR_FMT;
+	}
+
+	// Configuramos si la hora es AM, PM o ninguna
+	if (pRTC->am_pm == PM){
+		RTC->TR |= RTC_TR_PM;
+	}
+	else{
+		RTC->TR &= ~RTC_TR_PM;
+	}
+
+	// Escribimos las horas todo funciones
+	RTC->TR |= (decToBCD(pRTC->hour)) << RTC_TR_HU_Pos;
+
+	// Escribimos los minutos
+	RTC->TR |= (decToBCD(pRTC->minutes)) << RTC_TR_MNU_Pos;
+
+	// Escribimos los segundos
+	RTC->TR |= (decToBCD(pRTC->seconds)) << RTC_TR_SU_Pos;
 
 	/* Salimos del modo de inicialización */
 	RTC->ISR &= ~RTC_ISR_INIT;

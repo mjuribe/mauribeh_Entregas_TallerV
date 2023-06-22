@@ -21,5 +21,6 @@ void amarillo(void);
 void morado(void);
 void cyan(void);
 void naranja(void);
+void blanco(void);
 
 #endif /* INC_LEDDRIVER_H_ */
