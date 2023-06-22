@@ -133,7 +133,7 @@ uint8_t* getDate(void) {
 	date[1] = RTC_Month;
 	date[2] = RTC_Year;
 	date[3] = RTC_Day;
-
+//
 	return date;
 }
 /* Arreglos fecha y hora RTC */

@@ -29,7 +29,7 @@ void nine(void);
 void twelve(void);
 void eight(void);
 void eleven(void);
-void ten(void);
-void oclock(void);
+void ten(uint8_t color);
+void oclock(uint8_t color);
 
 #endif /* INC_LINES_H_ */

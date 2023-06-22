@@ -1564,7 +1564,7 @@ void eleven(void){
 }
 
 //Ultima linea del reloj, primera de la cinta de leds
-void ten(void){
+void ten(uint8_t color){
 	//Linea 11
 	apagado();
 	apagado();
@@ -1573,21 +1573,36 @@ void ten(void){
 	apagado();
 	apagado();
 	apagado();
-	azul(); //n
-	azul(); //e
-	azul(); //t
-	apagado();
+	if(color==1){
+		azul(); //n
+		azul(); //e
+		azul(); //t
+	}else if(color==2){
+		magenta();
+		magenta();
+		magenta();
+	}
 }
 
 //Ultima linea del reloj, primera de la cinta de leds
-void oclock(void){
+void oclock(uint8_t color){
 	//Linea 11
-	azul(); //k
-	azul(); //c
-	azul(); //o
-	azul(); //l
-	azul(); //c
-	azul(); //o
+	if(color==1){
+		azul(); //k
+		azul(); //c
+		azul(); //o
+		azul(); //l
+		azul(); //c
+		azul(); //o
+	}else if(color==2){
+		magenta();
+		magenta();
+		magenta();
+		magenta();
+		magenta();
+		magenta();
+	}
+
 
 }
 
