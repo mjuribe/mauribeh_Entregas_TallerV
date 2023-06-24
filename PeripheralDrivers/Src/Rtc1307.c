@@ -20,7 +20,11 @@ void RTC_SetDateTime(I2C_Handler_t *ptrHandlerI2C, rtc_t *rtc){
 
 	i2c_startTransaction(ptrHandlerI2C);
 
-	i2c_sendSlaveAddressRW(ptrHandlerI2C, 0x00, I2C_WRITE_DATA);
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_WRITE_DATA);
+
+	uint8_t memAddr = 0x00;
+
+	i2c_sendMemoryAddress(ptrHandlerI2C,memAddr);
 
 	i2c_sendDataByte(ptrHandlerI2C, decToBCD(rtc -> seconds));
 
@@ -42,9 +46,9 @@ void RTC_SetDateTime(I2C_Handler_t *ptrHandlerI2C, rtc_t *rtc){
 // Función para leer todos los registros
 void RTC_ReadDateTime(I2C_Handler_t *ptrHandlerI2C, getTime_t *ptrGetTime){
 
-	 i2c_startTransaction(ptrHandlerI2C);
+	i2c_startTransaction(ptrHandlerI2C);
 
-	i2c_sendSlaveAddressRW(ptrHandlerI2C, 0x00, I2C_WRITE_DATA);
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_WRITE_DATA);
 
 	uint8_t memAddr = 0x00;
 
@@ -54,7 +58,7 @@ void RTC_ReadDateTime(I2C_Handler_t *ptrHandlerI2C, getTime_t *ptrGetTime){
 
 	i2c_startTransaction(ptrHandlerI2C);
 
-	i2c_sendSlaveAddressRW(ptrHandlerI2C, 0x00, I2C_READ_DATA);
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_READ_DATA);
 
 	//int GetDateAndTime[7];
 
@@ -129,8 +133,7 @@ uint8_t RTC_readByte(I2C_Handler_t *ptrHandlerI2C, uint8_t memAddr){
 
 	i2c_startTransaction(ptrHandlerI2C);
 
-//	sendSlaveAddressWriteI2C(ptrHandlerI2C);
-	i2c_sendSlaveAddressRW(ptrHandlerI2C, 0x00, I2C_WRITE_DATA);
+	i2c_sendSlaveAddressRW(ptrHandlerI2C,ptrHandlerI2C->slaveAddress, I2C_WRITE_DATA);
 
 	i2c_sendMemoryAddress(ptrHandlerI2C,memAddr);
 
@@ -138,11 +141,11 @@ uint8_t RTC_readByte(I2C_Handler_t *ptrHandlerI2C, uint8_t memAddr){
 
 	i2c_startTransaction(ptrHandlerI2C);
 
-	i2c_sendSlaveAddressRW(ptrHandlerI2C, 0x00, I2C_READ_DATA);
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_READ_DATA);
 
 	uint8_t dataI2C = i2c_readDataByte(ptrHandlerI2C);
 
-	i2c_sendNoACK(ptrHandlerI2C);
+	//i2c_sendNoACK(ptrHandlerI2C);
 
 	i2c_stopTransaction(ptrHandlerI2C);
 
@@ -155,7 +158,7 @@ void RTC_writeByte(I2C_Handler_t *ptrHandlerI2C, uint8_t memAddr, uint8_t dataTo
 
 	i2c_startTransaction(ptrHandlerI2C);
 
-	i2c_sendSlaveAddressRW(ptrHandlerI2C, 0x00, I2C_WRITE_DATA);
+	i2c_sendSlaveAddressRW(ptrHandlerI2C,ptrHandlerI2C->slaveAddress, I2C_WRITE_DATA);
 
 	i2c_sendMemoryAddress(ptrHandlerI2C,memAddr);
 

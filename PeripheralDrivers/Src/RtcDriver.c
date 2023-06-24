@@ -100,17 +100,17 @@ void config_RTC(RTC_t *pRTC) {
 
 }
 
-// Función para convertir de numeros decimales a código BCD
-uint8_t decToBCD(int val) {
-	uint8_t variable = (uint8_t) ((val / 10 * 16) + (val % 10));
-	return variable;
-}
-
-// Función para convertir de código BCD a numeros decimales
-int BCDToDec(uint8_t val) {
-	int variable = (int) ((val / 16 * 10) + (val % 16));
-	return variable;
-}
+//// Función para convertir de numeros decimales a código BCD
+//uint8_t decToBCD(int val) {
+//	uint8_t variable = (uint8_t) ((val / 10 * 16) + (val % 10));
+//	return variable;
+//}
+//
+//// Función para convertir de código BCD a numeros decimales
+//int BCDToDec(uint8_t val) {
+//	int variable = (int) ((val / 16 * 10) + (val % 16));
+//	return variable;
+//}
 
 uint8_t time[4] = { 0 };
 uint8_t date[4] = { 0 };

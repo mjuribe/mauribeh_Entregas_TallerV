@@ -6,6 +6,10 @@
  * **************************************************************************************************
  */
 
+/*
+ * CONFIGURAR EL RESET DEL RTC DS1307 PARA QUE AL LLEGAR A 13 PASE A 1
+ * */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -23,9 +27,9 @@
 #include "I2CDriver.h"
 #include "PwmDriver.h"
 #include "PLLDriver.h"
-#include "RtcDriver.h"
 #include "AdcDriver.h"
 #include "LedDriver.h"
+#include "Rtc1307.h"
 #include "lines.h"
 
 /* Definicion de las macros */
@@ -38,8 +42,10 @@
 GPIO_Handler_t handlerBlinkyPin = { 0 };
 GPIO_Handler_t handlerPinLed = { 0 };
 
-/* Handler del RTC */
-RTC_t handlerRTC = { 0 };
+/* Configuración para el I2C - RTC DS1307 */
+GPIO_Handler_t handlerI2CSDA =	{0};
+GPIO_Handler_t handlerI2CSCL =	{0};
+I2C_Handler_t  handlerRTC	 = {0};
 
 /* Handler de los timers */
 BasicTimer_Handler_t handlerBlinkyTimer = { 0 };
@@ -50,14 +56,19 @@ GPIO_Handler_t handlerPinTX = { 0 };
 GPIO_Handler_t handlerPinRX = { 0 };
 USART_Handler_t handlerCommTerminal = { 0 };
 
-uint8_t* reloj;
-uint8_t hour[4];
+/* Configuración para el RTC */
+rtc_t			dateAndTimeRTC = {0};
+uint8_t 		dataRTC[7];
+getTime_t		dataRTCtest = {0};
+
 uint8_t tomadedatos=1;
 uint8_t stringComplete = 0;
 uint8_t rxData = 0;
 uint16_t counterReception = 0;
 uint8_t parametro=0;
 uint8_t colorled=0;
+uint8_t min=0;
+uint8_t hora=0;
 
 /* Configuracion de comandos por terminal serial*/
 char bufferData[64] = "Inicio";
@@ -87,6 +98,8 @@ int main(void) {
 	// Se configura el systick a 80MHz
 	config_SysTick_ms(PLL_100_CLOCK_CONFIGURED);
 	writeMsg(&handlerCommTerminal, "PROYECTO TALLER V \n");
+	turnoff();
+	delay_ms(50);
 
 	while (1) {
 		if(tomadedatos==1){
@@ -169,18 +182,6 @@ void initSystem(void) {
 	/* Cargamos la configuracion del Pin en los registros*/
 	GPIO_Config(&handlerPinLed);
 
-	// ---------------------------- CONFIGURACION INICIAL DEL RTC ----------------------------------------
-	handlerRTC.seconds                                  = 50;
-	handlerRTC.minutes                                  = 40;
-	handlerRTC.hour                                     = 6;
-	handlerRTC.weekDay                                  = RTC_WEEKDAY_WEDNESDAY;
-	handlerRTC.date                                     = 7;
-	handlerRTC.month                                    = 6;
-	handlerRTC.year                                     = 23;
-	handlerRTC.am_pm    								= PM;
-	handlerRTC.format									= FORMAT_12H;
-	config_RTC(&handlerRTC);
-
 	// ---------------------------- CONFIGURACION DE LA COMUNICACION SERIAL  ----------------------------------------
 	handlerPinTX.pGPIOx                               = GPIOA;
 	handlerPinTX.GPIO_PinConfig.GPIO_PinNumber        = PIN_2;
@@ -204,6 +205,38 @@ void initSystem(void) {
 	handlerCommTerminal.USART_Config.USART_enableIntRX  = USART_RX_INTERRUP_ENABLE;
 	handlerCommTerminal.USART_Config.USART_enableIntTX  = USART_TX_INTERRUP_DISABLE;
 	USART_Config(&handlerCommTerminal);
+
+
+	// Configuramos los pines para el I2C SCL
+	handlerI2CSCL.pGPIOx								= GPIOB;
+	handlerI2CSCL.GPIO_PinConfig.GPIO_PinNumber			= PIN_10;
+	handlerI2CSCL.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_ALTFN;
+	handlerI2CSCL.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_OPENDRAIN;
+	handlerI2CSCL.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_PULLUP;
+	handlerI2CSCL.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_FAST;
+	handlerI2CSCL.GPIO_PinConfig.GPIO_PinAltFunMode		= AF4;
+
+	GPIO_Config(&handlerI2CSCL);
+
+	// Configuramos los pines para el I2C SDA
+	handlerI2CSDA.pGPIOx								= GPIOB;
+	handlerI2CSDA.GPIO_PinConfig.GPIO_PinNumber			= PIN_3;
+	handlerI2CSDA.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_ALTFN;
+	handlerI2CSDA.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_OPENDRAIN;
+	handlerI2CSDA.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_PULLUP;
+	handlerI2CSDA.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_FAST;
+	handlerI2CSDA.GPIO_PinConfig.GPIO_PinAltFunMode		= AF9;
+
+	GPIO_Config(&handlerI2CSDA);
+
+	handlerRTC.ptrI2Cx								= I2C2;
+	handlerRTC.modeI2C								= I2C_MODE_FM;
+	handlerRTC.slaveAddress							= 0b1101000;
+	handlerRTC.mainClock							= MAIN_CLOCK_100_MHz_FOR_I2C;
+	handlerRTC.maxI2C_FM							= I2C_MAX_RISE_TIME_FM_100MHz;
+	handlerRTC.modeI2C_FM							= I2C_MODE_FM_SPEED_400KHz_100MHz;
+
+	i2c_config(&handlerRTC);
 
 }
 
@@ -232,10 +265,11 @@ void parseCommands(char *ptrBufferReception) {
 		if (firstParameter >= 0 && firstParameter < 24 && secondParameter >= 0
 				&& secondParameter < 60 && thirdParameter >= 0
 				&& thirdParameter < 60) {
-			handlerRTC.hour = firstParameter;
-			handlerRTC.minutes = secondParameter;
-			handlerRTC.seconds = thirdParameter;
-			config_RTC(&handlerRTC);
+			RTC_init(&handlerRTC);
+			dateAndTimeRTC.seconds 	= thirdParameter;
+			dateAndTimeRTC.minutes 	= secondParameter;
+			dateAndTimeRTC.hour 	= firstParameter;
+			RTC_SetDateTime(&handlerRTC, &dateAndTimeRTC);
 			sprintf(bufferData, "Hora Configurada = %.2u:%.2u:%.2u \n",
 					firstParameter, secondParameter, thirdParameter);
 			writeMsg(&handlerCommTerminal, bufferData);
@@ -244,9 +278,12 @@ void parseCommands(char *ptrBufferReception) {
 			writeMsg(&handlerCommTerminal, "Hora no valida\n");
 		}
 	} else if (strcmp(cmd, "actualtime") == 0) {
-		writeMsg(&handlerCommTerminal, "CMD: actualhour = Hora configurada");
-		printTime(bufferTime);
-		writeMsg(&handlerCommTerminal, bufferTime);
+		writeMsg(&handlerCommTerminal, "CMD: actualhour = Hora configurada ");
+		uint8_t second = RTC_readByte(&handlerRTC,0x00);
+		uint8_t minute = RTC_readByte(&handlerRTC,0x01);
+		uint8_t hour = RTC_readByte(&handlerRTC,0x02);
+		sprintf(bufferData, "%.2d:%.2d:%.2d \n", (int) hour, (int) minute, (int) second);
+		writeMsg(&handlerCommTerminal, bufferData);
 	}
 }
 
@@ -274,16 +311,14 @@ void BasicTimer3_Callback(void) {
 }
 
 void minutero(void){
-	reloj = getTime();
-	hour[0]=reloj[0];
-	hour[1]=reloj[1];
-	hour[2]=reloj[2];
-	if(hour[1]<5){
+	uint8_t min = RTC_readByte(&handlerRTC,0x01);
+	uint8_t hora = RTC_readByte(&handlerRTC,0x02);
+	if(min<5){
 		turnoff();
 		delay_ms(100);
 		itis(colorled);
 		delay_ms(4);
-	}else if(hour[1]>=5 && hour[1]<10){
+	}else if(min>=5 && min<10){
 		turnoff();
 		delay_ms(1);
 		itis(colorled);
@@ -292,28 +327,28 @@ void minutero(void){
 		delay_ms(4);
 		past(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=10 && hour[1]<15){
+	} else if(min>=10 && min<15){
 		itis(colorled);
 		delay_ms(4);
 		tenmin(colorled);
 		delay_ms(4);
 		past(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=15 && hour[1]<20){
+	} else if(min>=15 && min<20){
 		itis(colorled);
 		delay_ms(4);
 		quarter(colorled);
 		delay_ms(4);
 		past(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=20 && hour[1]<25){
+	} else if(min>=20 && min<25){
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
 		delay_ms(4);
 		past(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=25 && hour[1]<30){
+	} else if(min>=25 && min<30){
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
@@ -322,14 +357,14 @@ void minutero(void){
 		delay_ms(4);
 		past(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=30 && hour[1]<35){
+	} else if(min>=30 && min<35){
 		itis(colorled);
 		delay_ms(4);
 		half(colorled);
 		delay_ms(4);
 		past(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=35 && hour[1]<40){
+	} else if(min>=35 && min<40){
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
@@ -338,28 +373,28 @@ void minutero(void){
 		delay_ms(4);
 		to(colorled);
 		delay_ms(4);
-	} else if(hour[1]>=40 && hour[1]<45){
+	} else if(min>=40 && min<45){
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
 		delay_ms(4);
 		to(colorled);
 		delay_ms(4);
-    } else if(hour[1]>=45 && hour[1]<50){
+    } else if(min>=45 && min<50){
 		itis(colorled);
 		delay_ms(4);
 		quarter(colorled);
 		delay_ms(4);
 		to(colorled);
 		delay_ms(4);
-	}else if(hour[1]>=50 && hour[1]<55){
+	}else if(min>=50 && min<55){
 		itis(colorled);
 		delay_ms(4);
 		tenmin(colorled);
 		delay_ms(4);
 		to(colorled);
 		delay_ms(4);
-	}else if(hour[1]>=55 && hour[1]<=59){
+	}else if(min>=55 && min<=59){
 		itis(colorled);
 		delay_ms(4);
 		fivemin(colorled);
@@ -367,11 +402,11 @@ void minutero(void){
 		to(colorled);
 		delay_ms(4);
 	}
-	if(hour[1]<35){
-		parametro=hour[0];
+	if(min<35){
+		parametro=hora;
 		manecillahora(parametro);
-	}else if (hour[1]>=35){
-		parametro=hour[0]+1;
+	}else if (min>=35){
+		parametro=hora+1;
 		manecillahora(parametro);
 	}
 }
@@ -417,7 +452,7 @@ void manecillahora(uint16_t horaconf){
 		break;
 	}
 	delay_ms(4);
-	if(hour[1]<5){
+	if(min<5){
 		oclock(colorled);
 	}
 
