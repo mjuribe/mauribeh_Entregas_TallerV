@@ -21,10 +21,13 @@
 #include "USARTxDriver.h"
 #include "SysTickDriver.h"
 #include "I2CDriver.h"
+#include "PwmDriver.h"
 #include "PLLDriver.h"
+#include "AdcDriver.h"
 #include "LedDriver.h"
 #include "Rtc1307.h"
 #include "lines.h"
+#include "matrix.h"
 
 /* Definicion de las macros */
 #define PLL_100_CLOCK_CONFIGURED  2
@@ -92,7 +95,7 @@ char bufferTime[64];
 unsigned int firstParameter = 10000;
 unsigned int secondParameter = 10000;
 unsigned int thirdParameter = 10000;
-uint32_t tim=0;
+unsigned int tim=0;
 
 // Definicion de las cabeceras de las funciones
 void initSystem(void);
@@ -101,6 +104,7 @@ void manecillahora(uint16_t horaconf);
 void parseCommands(char *ptrBufferReception);
 void callback_extInt4(void);
 void callback_extInt11(void);
+void newminutes(void);
 
 int main(void) {
 	// Activamos el coprocesador matematico FPU
@@ -113,14 +117,13 @@ int main(void) {
 	config_SysTick_ms(PLL_100_CLOCK_CONFIGURED);
 	writeMsg(&handlerCommTerminal, "PROYECTO TALLER V \n");
 	turnoff();
-	delay_ms(500);
+	delay_ms(50);
 
 	while (1) {
-		if(tomadedatos==1){
-			delay_ms(20);
-			tomadedatos=0;
-			minutero();
-		}
+//		if(tomadedatos==1){
+//			tomadedatos=0;
+//			minutero();
+//		}
 		// El caracter '@' nos indica que es el final de la cadena
 			if (rxData != '\0') {
 				bufferReception[counterReception] = rxData;
@@ -356,15 +359,15 @@ void usart2Rx_Callback(void) {
 
 /* Funciones de los EXTI */
 // Funcion del boton del encoder
-//void callback_extInt4(void){
-//	if (counterExtiSwitch){
-//		counterExtiSwitch=0;
-//	} else {
-//		counterExtiSwitch=1;
-//	}
-//}
+void callback_extInt4(void){
+	if (counterExtiSwitch){
+		counterExtiSwitch=0;
+	} else {
+		counterExtiSwitch=1;
+	}
+}
 
-//// Funcion del giro del encoder
+// Funcion del giro del encoder
 void callback_extInt11(void){
 	counterExtiGiro = GPIO_ReadPin(&handlerPinB12); // Estado del Pin que controla el giro
 	if(counterExtiGiro){
@@ -390,9 +393,10 @@ void BasicTimer3_Callback(void) {
 	}
 }
 
+
 void minutero(void){
-	min  = RTC_readByte(&handlerRTC,0x01);
-	hora = RTC_readByte(&handlerRTC,0x02);
+	uint8_t min  = RTC_readByte(&handlerRTC,0x01);
+	uint8_t hora = RTC_readByte(&handlerRTC,0x02);
 	if(min<5){
 		turnoff();
 		delay_ms(1);

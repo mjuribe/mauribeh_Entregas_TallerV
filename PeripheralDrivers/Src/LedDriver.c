@@ -333,7 +333,8 @@ void apagado(void){
 	escribirCero();
 	escribirCero();
 	escribirCero();
-	escribirUno();
+	escribirCero();
+
 	escribirCero();
 	escribirCero();
 	escribirCero();
@@ -341,7 +342,8 @@ void apagado(void){
 	escribirCero();
 	escribirCero();
 	escribirCero();
-	escribirUno();
+	escribirCero();
+
 	escribirCero();
 	escribirCero();
 	escribirCero();

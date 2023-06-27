@@ -10,25 +10,6 @@
 
 #include "LedDriver.h"
 
-//void itis(void);
-//void tenmin(void);
-//void quarter(void);
-//void twentymin(void);
-//void fivemin(void);
-//void half(void);
-//void to(void);
-//void past(void);
-//void seven(void);
-//void one(void);
-//void two(void);
-//void three(void);
-//void four(void);
-//void five(void);
-//void six(void);
-//void nine(void);
-//void twelve(void);
-//void eight(void);
-//void eleven(void);
 void turnoff(void);
 void itis(uint8_t color);
 void tenmin(uint8_t color);

@@ -71,42 +71,44 @@ void RTC_ReadDateTime(I2C_Handler_t *ptrHandlerI2C, getTime_t *ptrGetTime){
 	ptrGetTime -> year 		= BCDToDec(i2c_readDataByte(ptrHandlerI2C));
 
 
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
-//	GetDateAndTime++;
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
-//	GetDateAndTime++;
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
-//	GetDateAndTime++;
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
-//	GetDateAndTime++;
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
-//	GetDateAndTime++;
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
-//	GetDateAndTime++;
-//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	GetDateAndTime++;
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	GetDateAndTime++;
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	GetDateAndTime++;
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	GetDateAndTime++;
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	GetDateAndTime++;
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
+	//	GetDateAndTime++;
+	//	*GetDateAndTime = i2c_readDataByte(ptrHandlerI2C);
 
 
 
 
-//	GetDateAndTime[0] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
-//
-//	GetDateAndTime[1] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
-//
-//	GetDateAndTime[2] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
-//
-//	GetDateAndTime[3] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
-//
-//	GetDateAndTime[4] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
-//
-//	GetDateAndTime[5] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
-//
-//	GetDateAndTime[6] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//	GetDateAndTime[0] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//
+	//	GetDateAndTime[1] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//
+	//	GetDateAndTime[2] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//
+	//	GetDateAndTime[3] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//
+	//	GetDateAndTime[4] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//
+	//	GetDateAndTime[5] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+	//
+	//	GetDateAndTime[6] = BCDToDec(i2c_readDataByte(ptrHandlerI2C));
+
 
 	i2c_sendNoACK(ptrHandlerI2C);
 
 	i2c_stopTransaction(ptrHandlerI2C);
 
 	//return *GetDateAndTime;
+
 }
 
 
