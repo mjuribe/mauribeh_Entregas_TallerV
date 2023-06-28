@@ -10,6 +10,7 @@
 
 #include "stm32f4xx.h"
 
+void resetLed(void);
 void escribirUno(void);
 void escribirCero(void);
 void apagado(void);

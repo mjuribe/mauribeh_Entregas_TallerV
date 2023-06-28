@@ -35,6 +35,7 @@
 GPIO_Handler_t handlerPinC4 = {0}; //Switch
 GPIO_Handler_t handlerPinA11 = {0}; //CLK
 GPIO_Handler_t handlerPinB12 = {0}; //DT
+GPIO_Handler_t  handlerPinTrans = {0};
 
 // Definicion de los contadores
 uint32_t counterExtiSwitch=0;
@@ -112,15 +113,19 @@ int main(void) {
 	// Se configura el systick a 80MHz
 	config_SysTick_ms(PLL_100_CLOCK_CONFIGURED);
 	writeMsg(&handlerCommTerminal, "PROYECTO TALLER V \n");
-	turnoff();
-	delay_ms(500);
+	//itis(1);
+//	turnoff();
+//	delay_ms(1000);
+//	itis(1);
+//	delay_ms(1000);
+	itisoneoclock(1);
 
 	while (1) {
-		if(tomadedatos==1){
-			delay_ms(20);
-			tomadedatos=0;
-			minutero();
-		}
+//		if(tomadedatos==1){
+//			delay_ms(20);
+//			tomadedatos=0;
+//			minutero();
+//		}
 		// El caracter '@' nos indica que es el final de la cadena
 			if (rxData != '\0') {
 				bufferReception[counterReception] = rxData;
@@ -150,6 +155,9 @@ int main(void) {
 } // Fin del main
 
 void initSystem(void) {
+
+	RCC->CR &= ~(RCC_CR_HSITRIM_Msk);
+	RCC->CR |= (12 << RCC_CR_HSITRIM_Pos);
 
 	// ----------------------------BLINKY SIMPLE ----------------------------------------
 	/* Configuracion del LED - PH1 - Blinky Simple */
@@ -196,6 +204,18 @@ void initSystem(void) {
 
 	/* Cargamos la configuracion del Pin en los registros*/
 	GPIO_Config(&handlerPinLed);
+
+	/*Configuracion del Pin para el control de los leds */
+	handlerPinTrans.pGPIOx                                     = GPIOA;
+	handlerPinTrans.GPIO_PinConfig.GPIO_PinNumber              = PIN_7;
+	handlerPinTrans.GPIO_PinConfig.GPIO_PinMode                = GPIO_MODE_OUT;
+	handlerPinTrans.GPIO_PinConfig.GPIO_PinOPType              = GPIO_OTYPE_PUSHPULL;
+	handlerPinTrans.GPIO_PinConfig.GPIO_PinSpeed               = GPIO_OSPEED_FAST;
+	handlerPinTrans.GPIO_PinConfig.GPIO_PinPuPdControl         = GPIO_PUPDR_NOTHING;
+	handlerPinTrans.GPIO_PinConfig.GPIO_PinAltFunMode          = AF0;
+
+	/* Cargamos la configuracion del Pin en los registros*/
+	GPIO_Config(&handlerPinTrans);
 
 	// ---------------------------- CONFIGURACION DE LA COMUNICACION SERIAL  ----------------------------------------
 	handlerPinTX.pGPIOx                               = GPIOA;
@@ -356,13 +376,13 @@ void usart2Rx_Callback(void) {
 
 /* Funciones de los EXTI */
 // Funcion del boton del encoder
-//void callback_extInt4(void){
-//	if (counterExtiSwitch){
-//		counterExtiSwitch=0;
-//	} else {
-//		counterExtiSwitch=1;
-//	}
-//}
+void callback_extInt4(void){
+	if (counterExtiSwitch){
+		counterExtiSwitch=0;
+	} else {
+		counterExtiSwitch=1;
+	}
+}
 
 //// Funcion del giro del encoder
 void callback_extInt11(void){
@@ -384,9 +404,16 @@ void callback_extInt11(void){
 
 void BasicTimer3_Callback(void) {
 	tim++;
+	counter++;
 	if(tim==10){
 		tomadedatos=1;
 		tim=0;
+	}
+	if(counter==30){
+		colorled++;
+		if(colorled>5){
+			colorled=0;
+		}
 	}
 }
 
@@ -394,13 +421,13 @@ void minutero(void){
 	min  = RTC_readByte(&handlerRTC,0x01);
 	hora = RTC_readByte(&handlerRTC,0x02);
 	if(min<5){
-		turnoff();
-		delay_ms(1);
+		GPIO_WritePin(&handlerPinTrans, 1);
+		delay_ms(1000);
+		GPIO_WritePin(&handlerPinTrans, 0);
+		delay_ms(100);
 		itis(colorled);
 		delay_ms(4);
 	}else if(min>=5 && min<10){
-		turnoff();
-		delay_ms(1);
 		itis(colorled);
 		delay_ms(4);
 		fivemin(colorled);
@@ -408,6 +435,10 @@ void minutero(void){
 		past(colorled);
 		delay_ms(4);
 	} else if(min>=10 && min<15){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		tenmin(colorled);
@@ -415,6 +446,10 @@ void minutero(void){
 		past(colorled);
 		delay_ms(4);
 	} else if(min>=15 && min<20){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		quarter(colorled);
@@ -422,6 +457,10 @@ void minutero(void){
 		past(colorled);
 		delay_ms(4);
 	} else if(min>=20 && min<25){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
@@ -429,6 +468,10 @@ void minutero(void){
 		past(colorled);
 		delay_ms(4);
 	} else if(min>=25 && min<30){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
@@ -438,6 +481,10 @@ void minutero(void){
 		past(colorled);
 		delay_ms(4);
 	} else if(min>=30 && min<35){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		half(colorled);
@@ -445,6 +492,10 @@ void minutero(void){
 		past(colorled);
 		delay_ms(4);
 	} else if(min>=35 && min<40){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
@@ -454,6 +505,10 @@ void minutero(void){
 		to(colorled);
 		delay_ms(4);
 	} else if(min>=40 && min<45){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		twentymin(colorled);
@@ -461,6 +516,10 @@ void minutero(void){
 		to(colorled);
 		delay_ms(4);
     } else if(min>=45 && min<50){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		quarter(colorled);
@@ -468,6 +527,10 @@ void minutero(void){
 		to(colorled);
 		delay_ms(4);
 	}else if(min>=50 && min<55){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		tenmin(colorled);
@@ -475,6 +538,10 @@ void minutero(void){
 		to(colorled);
 		delay_ms(4);
 	}else if(min>=55 && min<=59){
+		turnoff();
+		delay_ms(4);
+		turnoff();
+		delay_ms(4);
 		itis(colorled);
 		delay_ms(4);
 		fivemin(colorled);

@@ -12,7 +12,7 @@
 #include "BasicTimer.h"
 #include "GPIOxDriver.h"
 #include "PLLDriver.h"
-#include "LedDriver.h"
+#include "WS2812BDriver.h"
 
 /* Definicion de los elementos handler del sistema */
 GPIO_Handler_t handlerPinPLL = {0}; // Funcion Alternativa
@@ -26,11 +26,8 @@ BasicTimer_Handler_t handlerResetTimer = {0};
 
 /* Prototipos de las funciones del main*/
 void init_hardware(void);
-void escribirUno(void);
-void escribirCero(void);
 void Color(uint8_t r,uint8_t g,uint8_t b);
 void correrArreglo(void);
-void resetLed(void);
 uint8_t variable = 0;
 uint32_t colorLED = 0;
 /**/
@@ -44,53 +41,138 @@ int main(void) {
 	/*Inicialización de todos los elementos del sistema*/
 	init_hardware();
 
-//	azul();
-//	verde();
-//	verde();
-//	verde();
 
-//	int (*Intento[2])={
-//	(void *)&escribirUno,
-//	(void *)&escribirCero,
-//	};
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
 
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
 
-	Color(0,0,0);
-	correrArreglo();
-//	Color(0,150,0);
-//	correrArreglo();
-//	Color(150,0,150);
-//	correrArreglo();
-//	Color(0,150,150);
-//	correrArreglo();
-//	Color(150,0,0);
-//	correrArreglo();
-//	x=1;
-//
-//	if ((variable > 1) | (variable < 10 )){
-//		Color(150,150,0);
-//		correrArreglo();
-//		Color(0,150,0);
-//		correrArreglo();
-//		Color(150,0,150);
-//		correrArreglo();
-//		Color(0,150,150);
-//		correrArreglo();
-//		Color(150,0,0);
-//		correrArreglo();
-//	} else if ((variable > 10) | (variable < 20 )){
-//		Color(0,150,0);
-//		correrArreglo();
-//		Color(0,150,0);
-//		correrArreglo();
-//		Color(150,0,0);
-//		correrArreglo();
-//		Color(0,150,0);
-//		correrArreglo();
-//		Color(150,0,0);
-//		correrArreglo();
-//	}
-//
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+	limpiarLed();
+
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
+	naranja();
 
 
 	while(1){
@@ -129,8 +211,8 @@ void init_hardware(void) {
 	GPIO_Config(&handlerPinPLL);
 
 	/*Configuracion del Pin para el control de los leds */
-	handlerPinPrueba.pGPIOx = GPIOA;
-	handlerPinPrueba.GPIO_PinConfig.GPIO_PinNumber = PIN_6;
+	handlerPinPrueba.pGPIOx = GPIOB;
+	handlerPinPrueba.GPIO_PinConfig.GPIO_PinNumber = PIN_0;
 	handlerPinPrueba.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
 	handlerPinPrueba.GPIO_PinConfig.GPIO_PinOPType = GPIO_OTYPE_PUSHPULL;
 	handlerPinPrueba.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OSPEED_FAST;
